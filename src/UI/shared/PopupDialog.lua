@@ -1,5 +1,10 @@
 include("InstanceManager");
 
+-- Platform compatibility: the Aspyr macOS build exposes UI.GetAspyrAppVersion(); the
+-- Windows build does not. Aspyr's PopupDialog:Close() clears countdown end callbacks
+-- (see the guarded block there); Windows keeps vanilla behavior.
+local m_isAspyrMacBuild : boolean = (UI.GetAspyrAppVersion ~= nil);
+
 -- ===========================================================================
 --	PopupDialog
 --
@@ -354,6 +359,17 @@ end
 
 -- ===========================================================================
 function PopupDialog:Close()
+	if m_isAspyrMacBuild then
+		-- Aspyr macOS edit: clear Options.lua's RevertGraphicsChanges() countdown callback,
+		-- otherwise it is still called when the countdown expires after the dialog closed.
+		if self.CountDownIM then
+			for _,value in ipairs(self.PopupControls) do
+				if value.Type == "Count" then
+					value.Control:ClearEndCallback();
+				end
+			end
+		end
+	end
 	self.Controls.PopupRoot:SetHide(true);
 	self:Reset();
 end
