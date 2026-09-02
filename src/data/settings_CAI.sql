@@ -22,7 +22,12 @@ CREATE TABLE IF NOT EXISTS CAI_Settings (
 
     EditMode        TEXT,
     ActionValue     TEXT,
-    DisplayContext  TEXT NOT NULL DEFAULT 'Any'
+    DisplayContext  TEXT NOT NULL DEFAULT 'Any',
+    -- 'Any', 'Windows' or 'Mac': which build shows the setting.
+    Platform        TEXT NOT NULL DEFAULT 'Any',
+    -- Name of a CAISettings.OptionProviders function that supplies the
+    -- dropdown options at runtime instead of CAI_SettingOptions.
+    OptionsProvider TEXT
 );
 
 CREATE TABLE IF NOT EXISTS CAI_SettingOptions (
