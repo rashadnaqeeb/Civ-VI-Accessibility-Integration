@@ -42,8 +42,11 @@ end
 
 -- ===========================================================================
 function OnUpdateDelay(fDTime)
-	if mgr ~= nil then
-		mgr:OnUpdate()
+	-- Resolve the manager at call time: this function precedes the
+	-- accessibility section's `local mgr`, so that local is not in scope here.
+	local uiManager = ExposedMembers.CAI_UIManager
+	if uiManager ~= nil then
+		uiManager:OnUpdate()
 	end
 
 	if(m_acceptDelayTimer ~= NO_ACCEPT_TIMER) then
