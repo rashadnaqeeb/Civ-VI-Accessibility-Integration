@@ -1,5 +1,24 @@
+-- macOS bridge handshake. On Mac the native layer cannot hook the game, so it
+-- learns the Lua state from this call: os.date reaches libc gmtime/localtime,
+-- which the injected dylib interposes. The magic time must fit in 32 bits.
+-- It runs once per context so the native side can also route print() to its
+-- log. Harmless on Windows, where the DLL has already injected ExposedMembers.CAI.
+if os ~= nil and os.date ~= nil then
+	pcall(os.date, "ExposedMembers", 1234567890);
+end
 -- global access to the 'CAI' table, lives on 'ExposedMembers' and created by the dll
 CAI = ExposedMembers.CAI
+
+-- Read once per context: the check runs for every key event in every widget
+-- of the input bubble chain.
+local m_isMacBuild = (UI ~= nil and UI.GetAspyrAppVersion ~= nil)
+
+---True on the Aspyr macOS build of the game, where Alt is the Option key and
+---the native layer is the injected dylib instead of the DLL.
+---@return boolean
+function IsMacBuild()
+	return m_isMacBuild
+end
 
 include("textProcessing")
 include("CAISettings")
