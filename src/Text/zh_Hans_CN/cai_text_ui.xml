@@ -5790,6 +5790,12 @@
     <Replace Tag="LOC_CAI_KEY_ENTER" Language="zh_Hans_CN">
       <Text>回车键</Text>
     </Replace>
+    <Replace Tag="LOC_CAI_KEY_OPTION" Language="zh_Hans_CN">
+      <Text>Option</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_KEY_COMMAND" Language="zh_Hans_CN">
+      <Text>Command</Text>
+    </Replace>
     <Replace Tag="LOC_CAI_KEY_ESCAPE" Language="zh_Hans_CN">
       <Text>Escape键</Text>
     </Replace>

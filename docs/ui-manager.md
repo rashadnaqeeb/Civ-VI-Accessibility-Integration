@@ -759,6 +759,14 @@ widget:AddInputBindings({
 Binding defaults: `IsShift=false`, `IsControl=false`, `IsAlt=false`,
 `MSG=KeyEvents.KeyUp`.
 
+Mac key rule: on the Aspyr macOS build a binding with `IsControl=true` on one of
+the four arrow keys also matches with the Command key held (Shift stacking), and
+key help speaks it as Command instead of Control. `UIWidget:OnHandleInput` reads
+Command through `IsCommandDown()` in `caiUtils.lua` (native `CAI.IsCommandDown`,
+with `VK_LWIN` tracking from `UIScreenManager:HandleInput` as the fallback), and
+`FormatBinding` uses `IsMacCommandKey(key)`. Command sets no `InputStruct`
+modifier flag, so no other binding changes; Alt is Option on Mac.
+
 Non-common bindings are normally consumed without running their action when the
 focused widget is disabled. Set `BubbleWhenDisabled=true` on navigation
 bindings that should instead continue to an ancestor. Disabled EditBoxes use

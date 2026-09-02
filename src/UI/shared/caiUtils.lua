@@ -20,6 +20,44 @@ function IsMacBuild()
 	return m_isMacBuild
 end
 
+-- Mac key rule: Ctrl+arrow bindings read and match as Command+arrow on the
+-- Mac build (Shift stacking); no other binding moves. All four Ctrl+arrow
+-- combinations are Mission Control shortcuts macOS keeps by default (Ctrl+Up
+-- Mission Control, Ctrl+Down Application windows, Ctrl+Left/Right switch
+-- spaces), so they never reach the game, while Command is free on the arrow
+-- keys. A wholesale Control-to-Command swap was rejected because Cmd+Space,
+-- Tab, Q, W, M and H belong to macOS and engine hotkey gestures cannot
+-- express Command anyway. Command sets no InputStruct modifier flag and
+-- arrives as its own key (VK_LWIN), so the state is read live from the
+-- dylib, with the key's own down/up events as the fallback when the native
+-- layer is not loaded. See mac/README.md, Keyboard.
+local m_commandKeyDown = false
+
+---True when a Control binding on this key is Command on the Mac build.
+---@param key Keys
+---@return boolean
+function IsMacCommandKey(key)
+	if not IsMacBuild() then return false end
+	return key == Keys.VK_LEFT or key == Keys.VK_RIGHT or key == Keys.VK_UP or key == Keys.VK_DOWN
+end
+
+---Records Command key-down and key-up events. The UI manager calls this for
+---every key event before bindings are matched.
+---@param input InputStruct
+function TrackCommandKey(input)
+	local key = input:GetKey()
+	if key == Keys.VK_LWIN or key == Keys.VK_RWIN then
+		m_commandKeyDown = (input:GetMessageType() == KeyEvents.KeyDown)
+	end
+end
+
+---Live Command key state on the Mac build. Always false on Windows.
+---@return boolean
+function IsCommandDown()
+	if CAI ~= nil and CAI.IsCommandDown ~= nil then return CAI.IsCommandDown() end
+	return m_commandKeyDown
+end
+
 include("textProcessing")
 include("CAISettings")
 include("CAI_logging")

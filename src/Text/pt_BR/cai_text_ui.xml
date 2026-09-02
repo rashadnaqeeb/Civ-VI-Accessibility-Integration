@@ -5783,6 +5783,12 @@
     <Replace Tag="LOC_CAI_KEY_ENTER" Language="pt_BR">
       <Text>Enter</Text>
     </Replace>
+    <Replace Tag="LOC_CAI_KEY_OPTION" Language="pt_BR">
+      <Text>Option</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_KEY_COMMAND" Language="pt_BR">
+      <Text>Command</Text>
+    </Replace>
     <Replace Tag="LOC_CAI_KEY_ESCAPE" Language="pt_BR">
       <Text>Esc</Text>
     </Replace>

@@ -499,6 +499,8 @@ function UIWidget:OnHandleInput(input, globalOnly)
     local isShift = input:IsShiftDown()
     local isControl = input:IsControlDown()
     local isAlt = input:IsAltDown()
+    -- Mac key rule: Command stands in for Control on arrow-key bindings.
+    if not isControl and IsMacCommandKey(key) and IsCommandDown() then isControl = true end
     for _, b in ipairs(self.InputMap) do
         if b.Action and b.Key == key and b.MSG == msg
             and isShift == b.IsShift and isControl == b.IsControl and isAlt == b.IsAlt

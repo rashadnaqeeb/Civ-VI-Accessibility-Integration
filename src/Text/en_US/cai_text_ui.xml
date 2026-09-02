@@ -5829,6 +5829,12 @@
     <Row Tag="LOC_CAI_KEY_ENTER" Language="en_US">
       <Text>Enter</Text>
     </Row>
+    <Row Tag="LOC_CAI_KEY_OPTION" Language="en_US">
+      <Text>Option</Text>
+    </Row>
+    <Row Tag="LOC_CAI_KEY_COMMAND" Language="en_US">
+      <Text>Command</Text>
+    </Row>
     <Row Tag="LOC_CAI_KEY_ESCAPE" Language="en_US">
       <Text>Escape</Text>
     </Row>

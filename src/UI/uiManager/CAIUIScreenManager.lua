@@ -707,6 +707,7 @@ end
 function UIScreenManager:HandleInput(input)
     local msg = input:GetMessageType()
     local key = input:GetKey()
+    TrackCommandKey(input)
 
     -- Suspended: the manager is inert. Only global bindings (the mod-toggle)
     -- are evaluated; everything else returns false so vanilla input proceeds.
