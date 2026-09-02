@@ -1,0 +1,4 @@
+# CMake build tree (dependencies are fetched into it).
+build/
+# clangd index.
+.cache/
