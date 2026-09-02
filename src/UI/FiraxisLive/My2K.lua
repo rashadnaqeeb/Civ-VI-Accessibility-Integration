@@ -4,6 +4,10 @@
 
 include("InstanceManager");
 
+-- Platform compatibility: the Aspyr macOS build exposes UI.GetAspyrAppVersion(); the
+-- Windows build does not. See ChangeMy2KTexture() for the one Aspyr-specific branch.
+local m_isAspyrMacBuild : boolean = (UI.GetAspyrAppVersion ~= nil);
+
 
 
 -- ===========================================================================
@@ -227,7 +231,12 @@ function ChangeMy2KTexture(control, labelControl, my2KLinked)
 			end
 		else
 			control:SetTexture("My2KLogoButton");
-			control:SetToolTipString(GetUnlinkedTooltip());
+			-- Aspyr macOS (COPPA): when Main Menu is first initialized, FiraxisLive can report a linked
+			-- child account as not linked, so Aspyr only shows the unlinked tooltip for age-restricted
+			-- accounts to avoid a misleading tooltip. Windows keeps the vanilla behavior.
+			if (not m_isAspyrMacBuild) or Network.IsAgeRestricted() then
+				control:SetToolTipString(GetUnlinkedTooltip());
+			end
 			if (labelControl ~= nil and labelControl.LocalizeAndSetText ~= nil) then
 				labelControl:LocalizeAndSetText("TXT_KEY_MY2K_ADDITION_LINK_ACCOUNT_TITLE");
 			end

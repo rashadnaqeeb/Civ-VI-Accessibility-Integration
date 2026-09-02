@@ -10,6 +10,15 @@ include("InstanceManager");
 include("PopupDialog");
 include("PlayerSetupLogic");
 
+-- Platform compatibility: the Aspyr macOS build exposes UI.GetAspyrAppVersion(); the
+-- Windows build does not. Aspyr's Options.lua drops the borderless window mode, and
+-- their Options.xml omits the tuner, multi-GPU, leader motion blur, touch input, RGB
+-- lighting and mouse capture controls (so those Controls.* entries are nil on Mac).
+-- The affected blocks below are guarded so this one file serves both platforms.
+-- The guarded vanilla blocks keep their original indentation on purpose, so
+-- this full copy still diffs cleanly against the vanilla file.
+local m_isAspyrMacBuild : boolean = (UI.GetAspyrAppVersion ~= nil);
+
 
 -- Quick utility function to determine if Rise and Fall is installed.
 function HasExpansion1()
@@ -594,8 +603,11 @@ function PopulateGraphicsOptions()
     {
 		{"LOC_OPTIONS_WINDOW_MODE_WINDOWED", WINDOWED_OPTION},
 		{"LOC_OPTIONS_WINDOW_MODE_FULLSCREEN", FULLSCREEN_OPTION},
-		{"LOC_OPTIONS_WINDOW_MODE_BORDERLESS", BORDERLESS_OPTION}
 	};
+	if not m_isAspyrMacBuild then
+		-- The Aspyr macOS build has no borderless window mode.
+		table.insert(windowed_options, {"LOC_OPTIONS_WINDOW_MODE_BORDERLESS", BORDERLESS_OPTION});
+	end
 
 	local uiscale_options =
     {
@@ -743,6 +755,7 @@ function PopulateGraphicsOptions()
         bMGPUValue = 1;
     end
 
+    if Controls.MultiGPUCheckbox ~= nil then	-- absent from the Aspyr macOS Options.xml
     PopulateCheckBox(Controls.MultiGPUCheckbox, bMGPUValue,
         function(option)
             Options.SetGraphicsOption("DX12", "EnableSplitScreenMultiGPU", option);
@@ -751,6 +764,7 @@ function PopulateGraphicsOptions()
         end
     );
     Controls.MultiGPUCheckbox:SetDisabled( Options.IsMultiNodeGPU() == 0 );
+    end
 
 	-- UI Upscaling
 	local available_scales = {};
@@ -1187,6 +1201,7 @@ function PopulateGraphicsOptions()
 
 	-- Update the Motion Blur checkbox when leader quality changes
 	local UpdateMotionBlurCheckbox = function(eLeaderQuality)
+		if Controls.MotionBlurEnabledCheckbox == nil then return; end	-- absent from the Aspyr macOS Options.xml
 		if UI.LeaderQualityAllowsMotionBlur(eLeaderQuality) then
 			local bEnabled = Options.GetGraphicsOption("Leaders", "EnableMotionBlur") ~= 0;
 			Controls.MotionBlurEnabledCheckbox:SetDisabled(false);
@@ -1211,6 +1226,7 @@ function PopulateGraphicsOptions()
     );
     
     -- Leader Motion Blur
+    if Controls.MotionBlurEnabledCheckbox ~= nil then	-- absent from the Aspyr macOS Options.xml
     PopulateCheckBox(Controls.MotionBlurEnabledCheckbox, Options.GetGraphicsOption("Leaders", "EnableMotionBlur"),
         function(option)
             Controls.MemorySlider:SetStepAndCall(memory_customStep);          -- It's enough to set just one of the Impact sliders to "custom", the logic sets the other one
@@ -1218,6 +1234,7 @@ function PopulateGraphicsOptions()
 			Controls.ConfirmButton:SetDisabled(false);
         end
     );
+    end
 
     -- Disable things we aren't allowed to change when game is running
     Controls.UIScalePulldown:SetDisabled( is_in_game or (not Options.IsUIUpscaleAllowed()) )
@@ -1383,11 +1400,13 @@ function TemporaryHardCodedGoodness()
 	end,
 	UserConfiguration.IsValueLocked("CityRangeAttackTurnBlocking"));
 
+	if Controls.TunerPullDown ~= nil then	-- absent from the Aspyr macOS Options.xml
 	PopulateComboBox(Controls.TunerPullDown, boolean_options, Options.GetAppOption("Debug", "EnableTuner"), function(option)
 		Options.SetAppOption("Debug", "EnableTuner", option);
 		Controls.ConfirmButton:SetDisabled(false);
 		_PromptRestartApp = true;
 	end);	
+	end
 
 	-- Only steam supports the auto download of mods feature.
 	if(Network.GetNetworkPlatform() == NetworkPlatform.NETWORK_PLATFORM_STEAM) then
@@ -1443,10 +1462,12 @@ function TemporaryHardCodedGoodness()
 		end);
 	end
 
+	if Controls.TouchInputCheckbox ~= nil then	-- absent from the Aspyr macOS Options.xml
 	PopulateCheckBox(Controls.TouchInputCheckbox, Options.GetAppOption("UI", "IsTouchScreenEnabled"), function(option)
 		Options.SetAppOption("UI", "IsTouchScreenEnabled", option and 1 or 0);
 		Controls.ConfirmButton:SetDisabled(false);
 	end);
+	end
 
 
 	PopulateEditBox(Controls.LANPlayerNameEdit, Options.GetUserOption("Multiplayer", "LANPlayerName"), function(option)
@@ -1592,11 +1613,13 @@ function TemporaryHardCodedGoodness()
 		_PromptRestartGame = true;
     end);	
 
+	if Controls.RGBControl ~= nil then	-- absent from the Aspyr macOS Options.xml
 	PopulateComboBox(Controls.RGBControl, lightingRGB_options, Options.GetAppOption("UI", "UseRGBLighting"), function(option)
 		Options.SetAppOption("UI", "UseRGBLighting", option);
 		Controls.ConfirmButton:SetDisabled(false);
 		_PromptRestartApp = true;
     end);	
+	end
 
     -- we can't allow this to be changed in-game, too many things cache the values
     if IsInGame() then
@@ -1611,11 +1634,13 @@ function TemporaryHardCodedGoodness()
 		_PromptRestartGame = true;
 	end);
 
+    if Controls.MouseGrabPullDown ~= nil then	-- absent from the Aspyr macOS Options.xml
     PopulateComboBox(Controls.MouseGrabPullDown, grab_options, Options.GetAppOption("Video", "MouseGrab"), function(option)
 		Options.SetAppOption("Video", "MouseGrab", option);
 		Controls.ConfirmButton:SetDisabled(false);
         _PromptRestartApp = true;
 	end);
+    end
 
 	PopulateComboBox(Controls.EdgeScrollPullDown, boolean_options, Options.GetUserOption("Gameplay", "EdgePan"), function(option)
 		Options.SetUserOption("Gameplay", "EdgePan", option);
