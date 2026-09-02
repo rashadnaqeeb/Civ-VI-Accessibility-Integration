@@ -2779,3 +2779,15 @@ Tooltip breakdown strings can legitimately be empty when a yield/stat is zero. E
 # Tab-control initial focus setting (2026-09-21)
 
 - `FocusTabStripOnFirstEntry` is a default-disabled UI checkbox in `settings_CAI.sql`. `TabControlWidget:GetDefaultChild()` uses `CAIWidgetHelpers_Navigation.DefaultChild` when enabled: child 1 is the strip, and the manager's existing child/key cache restores subsequent focus. History is per widget instance, not persisted per screen. Explicit descendant focus and directional Tab/Shift+Tab entry retain their existing behavior. No vanilla API or input bindings change.
+
+## macOS (Aspyr) build
+
+The Mac port and its native layer are documented in `mac/README.md`. The facts below are the ones a Lua screen author needs.
+
+- `UI.GetAspyrAppVersion` exists only on the Aspyr macOS build; `IsMacBuild()` in `caiUtils.lua` is the shared check. Aspyr patched nine vanilla Lua files (`ASPYR MOD BEGIN` / `ASL_BEGIN` markers); partial `_CAI` replacements inherit those edits, and the four full-copy files (`MainMenu.lua`, `Options.lua`, `PopupDialog.lua`, `My2K.lua`) branch on `m_isAspyrMacBuild`.
+- The Mac build writes no `Lua.log`; the native layer writes `print` output and runtime errors to `~/Library/Logs/CAI/cai_native.log`.
+- Option arrives as Alt (`IsAltDown`). Command arrives as its own key, `Keys.VK_LWIN` (118), with normal key-down and key-up events and no modifier flag; a key pressed with Command held arrives as the plain key, and Command stacks with Shift. `InputStruct:GetFlags()` is Shift 4, Control 8, Alt 16. `IsCommandDown()` in `caiUtils.lua` gives the live state (native `CAI.IsCommandDown`, falling back to `VK_LWIN` tracking from `UIScreenManager:HandleInput`).
+- Mac key rule: a binding with `IsControl = true` on one of the four arrow keys also matches with Command held and is spoken as Command (`LOC_CAI_KEY_COMMAND`), because Ctrl+arrow is taken by Mission Control on macOS. Implemented through `IsMacCommandKey` in `caiUtils.lua`, used by `UIWidget:OnHandleInput` and `FormatBinding` only, so DataTable and Grid column jumps and EditBox word movement need no per-widget change. `PathOwnsEnterBinding` is untouched because Enter is never a Command key. Alt is spoken as Option (`LOC_CAI_KEY_OPTION`) through `GetAltKeyName`.
+- Combinations macOS takes first and that no binding may use: Cmd+Tab, Cmd+Space, Cmd+Q, Cmd+H, Cmd+M, Cmd+W, Cmd+backtick and the screenshot keys. Aspyr remapped nothing to Command; the shipped Mac defaults are the Windows ones (Ctrl+F map search, Ctrl+comma and Ctrl+period in the Civilopedia).
+- Option+arrow key-down events occasionally do not reach Lua while the key-up always does; plain and Shift+arrow are reliable. Do not bind Option+arrow on key-down.
+- Character input: on the Mac typed characters are queued natively and drained once per frame by `UIScreenManager:PollCharInput` through `CAI.PollCharInput()`; on Windows the DLL calls the registered handler directly and that function is absent.
