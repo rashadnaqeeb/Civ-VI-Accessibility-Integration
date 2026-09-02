@@ -188,6 +188,11 @@
 - War Machine scenario integration is implemented and statically verified. In-game validation is the next task.
 - All previously pending in-game tests, retests, regression checks, and optional fixture checks were closed as successful at the user's direction on 2026-07-17.
 
+## macOS port (branch `macos-support`)
+
+- The mod runs on the Aspyr macOS build from Steam, Apple Silicon only, with speech, sounds, text input, config and a Lua log. Design, internals, build and release steps: `mac/README.md`. Lua-facing facts: `docs/game-api.md`, "macOS (Aspyr) build".
+- Development on the Mac: `mac/dev/build.sh` builds and deploys, `mac/dev/run.sh` launches (Steam running), `mac/dev/kill.sh` stops.
+
 ## Pending tests
 
 - BBG ProductionPanel + TradeOverview integration (added 2026-08-19): with Better Balanced Game 7.4.6 active, verify the production panel opens and reads correctly (Warrior Monk absent from the normal build list — BBG's monk nerf is effectively always on: `MonkOverride` removes it unless a companion BBGTS beta mod explicitly sets `BBGTS_MONK_NERF = false`) and the trade overview Available Routes tab reads with BBG's city-state/civ grouping. Both use the WorldRankings vendored-base pattern; static Lua checks pass, in-game unverified.

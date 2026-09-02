@@ -19,6 +19,24 @@ Epic Games' default installation folder is: `C:\Program Files\Epic Games\SidMeie
 2. Copy the `CivVi-Accessibility-Integration` folder into: `%USERPROFILE%\Documents\My Games\Sid Meier's Civilization VI\Mods`. Note that sometimes the documents folder is in one drive. If the `Sid Meier's Civilization VI` folder does not exist, launch the game once and then close it. You may also create the folders yourself
 3. Launch Civilization VI. The mod is enabled automatically.
 
+### macOS
+
+The mod also runs on the Mac version of the game from Steam. Requirements: a Mac with Apple Silicon, macOS 13 or later, and Civilization VI version 1.4.6 (the current Steam build). Intel Macs are not supported.
+
+1. Download the macOS package (`Civ-VI-Accessibility-Integration-<version>-macos.zip`) from the release and unzip it.
+2. Open Terminal, then run `install.sh` from the unzipped folder. The script copies the mod and the native layer into place and puts the Steam launch option on the clipboard.
+3. In Steam, open Library, select Sid Meier's Civilization VI, choose Properties, then General, and paste the launch option into Launch Options.
+4. Start the game from Steam as usual. The mod is enabled automatically.
+
+Keyboard notes for the Mac:
+
+- `Alt` in this document is the Option key. `Ctrl` is the Control key. The spoken key help says Option instead of Alt, and Command for the arrow-key shortcuts below.
+- `Ctrl+Left` / `Ctrl+Right` in tables, grids and text fields are `Command+Left` / `Command+Right` on the Mac, also with `Shift`. Everything else keeps its key.
+- Some Control shortcuts are taken by macOS when a feature is on: `Ctrl+Space` (input source switching, only with two or more input sources), `Ctrl+1` to `Ctrl+9` (switch to desktop, only when extra desktops exist), and `F11` (Show Desktop). Turn the macOS shortcut off in System Settings, Keyboard, Keyboard Shortcuts, or rebind the mod's key.
+- If VoiceOver's Keyboard Commander is on, keys pressed with Right Option go to VoiceOver instead of the game.
+
+Speech on the Mac comes from the system voice by default and is set up in the Speech section of the accessibility settings (`F12`): output (system voice, Prism, or Auto, which uses VoiceOver through Prism while VoiceOver runs), voice, rate and volume. Pressing any key stops the current speech, as a screen reader does. Settings are stored in `~/Library/Application Support/Sid Meier's Civilization VI/civ6-accessibility-integration.ini`, and the mod's log, including Lua errors, is `~/Library/Logs/CAI/cai_native.log`. To remove the mod, run `uninstall.sh` from the same folder and clear the launch option in Steam.
+
 ## Using the UI
 
 The accessible interface is made from nested widgets. A screen is usually a panel containing several containers, such as a list of actions, a tree of information, and a row of buttons. Those containers may themselves contain other containers. For example, a panel may contain a tree, the tree may contain ceveral items, similar to a tipical windows treeview
@@ -118,7 +136,7 @@ Tables and grids arrange items vertically and horizontally and do not wrap at th
 - `Up` / `Down` — previous / next row in a table or grid
 - `Left` / `Right` — previous / next column
 - `Home` / `End` — first / last row in a column
-- `Ctrl+Left` / `Ctrl+Right` — previous / next column. Note that a grid's column may have multiple sub columns. Use `left` and `right` to navigate those
+- `Ctrl+Left` / `Ctrl+Right` (`Command+Left` / `Command+Right` on the Mac) — previous / next column. Note that a grid's column may have multiple sub columns. Use `left` and `right` to navigate those
 - `Ctrl+Home` / `Ctrl+End` — first / last item in the entire table or grid
 - `Enter` on a sortable table header — cycle sort order
 - Type-ahead — tables search row labels; grids search every cell
@@ -441,3 +459,5 @@ Special thanks to:
 - Rashad for allowing me to steal from his Civilization V accessibility mod and for answering my numerous questions.
 - Woody52169 for the simplified Chinese localization
 - CodedByGoose for the Spanish localization
+
+The macOS port was contributed by Rashad Naqeeb. Its native layer uses prism by Ethin Probst (MPL-2.0), miniaudio by David Reid (MIT-0 / public domain), and SimpleIni by Brodie Thiesfield (MIT); their license texts ship in the `licenses` folder of the macOS package.
