@@ -10,6 +10,12 @@ include("PopupDialog");
 -- ===========================================================================
 local m_mainOptionIM :	table = InstanceManager:new( "MenuOption", "Top", Controls.MainMenuOptionStack );
 local m_subOptionIM :	table = InstanceManager:new( "MenuOption", "Top", Controls.SubMenuOptionStack );
+-- Compatibility: the Aspyr macOS build exposes UI.GetAspyrAppVersion(); the Windows
+-- build does not. Aspyr's MainMenu.lua shows that version string in the version label,
+-- drops the crossplay multiplayer entry, and re-evaluates the offline Internet tooltip
+-- live (COPPA age restriction). Those spots branch on this flag below.
+local m_isAspyrMacBuild : boolean = (UI.GetAspyrAppVersion ~= nil);
+
 -- Compatibility: Epic's MainMenu.xml omits the online Challenge carousel entirely
 -- (the Challenge* controls and the CarouselEntry/CarouselEntryIndicator instance
 -- templates); Steam's ships it. Because the mod replaces only the Lua context and not
@@ -623,7 +629,8 @@ function UpdateInternetButton(buttonControl: table)
 			m_internetButton.ButtonLabel:SetColorByName( "ButtonCS" );
 		else
 			m_internetButton.OptionButton:SetDisabled(true);
-			m_internetButton.Top:SetToolTipString(InternetButtonOfflineStr);
+			-- Aspyr's macOS build re-evaluates the offline tooltip each time (age restriction may change).
+			m_internetButton.Top:SetToolTipString(m_isAspyrMacBuild and GetInternetGameOfflineTT() or InternetButtonOfflineStr);
 			m_internetButton.ButtonLabel:SetText(Locale.Lookup("LOC_MULTIPLAYER_INTERNET_GAME_OFFLINE"));
 			m_internetButton.ButtonLabel:SetColorByName( "ButtonDisabledCS" );
 		end
@@ -1042,13 +1049,16 @@ local m_SinglePlayerSubMenu :table = {
 local m_MultiPlayerSubMenu :table = {
 								{label = "LOC_MULTIPLAYER_CLOUD_GAME",			callback = OnPlayByCloud,			tooltip = "LOC_MULTIPLAYER_CLOUD_GAME_TT", buttonState = UpdateCloudGamesButton},
 								{label = "LOC_MULTIPLAYER_INTERNET_GAME",		callback = OnInternet,				tooltip = "LOC_MULTIPLAYER_INTERNET_GAME_TT", buttonState = UpdateInternetButton},
-								{label = "LOC_MULTIPLAYER_CROSSPLAY_GAME",		callback = OnCrossPlay,				tooltip = "LOC_MULTIPLAYER_CROSSPLAY_GAME_TT", buttonState = UpdateCrossPlayButton},
 								{label = "LOC_MULTIPLAYER_LAN_GAME",			callback = OnLANGame,				tooltip = "LOC_MULTIPLAYER_LAN_GAME_TT"},
 								{label = "LOC_MULTIPLAYER_HOTSEAT_GAME",		callback = OnHotSeat,				tooltip = "LOC_MULTIPLAYER_HOTSEAT_GAME_TT"},
 								{space = true},
 								{label = "LOC_MULTIPLAYER_MATCHMAKE_CIVROYALE",	callback = GetOnMatchMakeFunction(OPTION_SEEN_CIVROYALE_INTRO, StartRoyaleMatchMaking, LuaEvents.MainMenu_ShowCivRoyaleIntro),	tooltip = "LOC_MULTIPLAYER_MATCHMAKE_CIVROYALE_TT", colorName = "RoyaleButtonCS",  helpCallback = OnCivRoyaleHowToPlay, helpTooltip = "LOC_MULTIPLAYER_HOWTOPLAY_CIVROYALE_TT", buttonState = GetHowToButtonUpdateFunction(m_howToRoyaleControl, MOD_CIVROYALE_GUID)},
 								{label = "LOC_MULTIPLAYER_MATCHMAKE_PIRATES",	callback = GetOnMatchMakeFunction(OPTION_SEEN_PIRATES_INTRO, StartPiratesMatchMaking, LuaEvents.MainMenu_ShowPiratesIntro),	tooltip = "LOC_MULTIPLAYER_MATCHMAKE_PIRATES_TT", colorName = "PiratesButtonCS",  helpCallback = OnPiratesHowToPlay, helpTooltip = "LOC_MULTIPLAYER_HOWTOPLAY_PIRATES_TT", buttonState = GetHowToButtonUpdateFunction(m_howToPiratesControl, MOD_PIRATES_GUID)}
 							};
+if not m_isAspyrMacBuild then
+	-- Crossplay sits between Internet and LAN on Windows; Aspyr removed it from the macOS build.
+	table.insert(m_MultiPlayerSubMenu, 3, {label = "LOC_MULTIPLAYER_CROSSPLAY_GAME",		callback = OnCrossPlay,				tooltip = "LOC_MULTIPLAYER_CROSSPLAY_GAME_TT", buttonState = UpdateCrossPlayButton});
+end
 
 local m_AdditionalSubMenu :table = {
 								{label = "LOC_MAIN_MENU_MODS",					callback = OnMods,					tooltip = "LOC_MAIN_MENU_MODS_AND_DLC_TT"},
@@ -1800,7 +1810,7 @@ function Initialize()
 	ContextPtr:SetShowHandler( OnShow );
 	ContextPtr:SetShutdown( OnShutdown );
 	
-	Controls.VersionLabel:SetText( UI.GetAppVersion() );
+	Controls.VersionLabel:SetText( m_isAspyrMacBuild and UI.GetAspyrAppVersion() or UI.GetAppVersion() );
 	Controls.My2KLogin:RegisterCallback( Mouse.eLClick, OnMy2KLogin );
 	Controls.My2KLogin:RegisterCallback( Mouse.eMouseEnter, function() UI.PlaySound("Main_Menu_Mouse_Over"); end);
 
