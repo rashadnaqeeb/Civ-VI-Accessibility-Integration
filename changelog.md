@@ -84,6 +84,10 @@
 - After moving a unit onto a tribal village, discovering a natural wonder, or moving into or out of the water, the movement announcement waits for the game's movement update and reports the unit's actual remaining movement, instead of a stale value.
 - In the city overview panel's Citizens and growth summary, the food per turn figure is now the net food after consumption instead of the raw food yield.
 
+### Fixed
+
+- Type-to-find text now clears after the search timeout in the main menu and setup screens as well, not only in-game.
+
 ## [1.4.1] - 2026-08-30
 
 ### Fixed

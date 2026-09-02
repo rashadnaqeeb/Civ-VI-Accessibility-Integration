@@ -330,6 +330,7 @@
 
 - The mod runs on the Aspyr macOS build from Steam, Apple Silicon only, with speech, sounds, text input, config and a Lua log. Design, internals, build and release steps: `mac/README.md`. Lua-facing facts: `docs/game-api.md`, "macOS (Aspyr) build".
 - Development on the Mac: `mac/dev/build.sh` builds and deploys, `mac/dev/run.sh` launches (Steam running), `mac/dev/kill.sh` stops.
+- Type-to-find in the front end (2026-09-02/03): typed characters were queued natively but never polled. Two causes: the `MainMenu.lua` and `IntroScreen.lua` update hooks referenced `mgr` before its `local` declaration (nil global; fixed, resolved at call time), and the main menu's update callback stops while game setup or the leader picker is up (verified in the log: main menu polls, picker never does). `HandleInput` now also drains the queue on every key-up. Side effect on Windows: the search timeout and audio manager updates now also run in the front end. Verified on the Mac 2026-09-03: type-to-find works in the civ picker.
 
 ## Pending tests
 
@@ -337,6 +338,7 @@
 - Geography "fully revealed" suffix (added 2026-08-25): in-game, confirm a landmass/ocean reads ", fully revealed" only once fully charted, that `plot:GetArea():GetPlotCount()` returns sane totals in the InGame UI context, and that ocean clusters (non-lake water) match a non-lake water area's count. Static Lua checks pass, in-game unverified. Details in `docs/game-api.md` geography-zone section.
 - Geography Natural disasters subcategory (added 2026-08-25, Gathering Storm only): in-game with XP2, confirm active storms, droughts (with turns remaining), and erupting volcanoes appear under Geography > Natural disasters, jump correctly, and disappear once expired. Gated on revealed (matches plot tooltip's IsRevealed), not visibility. Verify `GameClimate.*` and `MapFeatureManager.IsVolcanoErupting` behave in the InGame UI context. Static Lua checks pass, in-game unverified.
 - Movement-value settle fix (reworked and verified 2026-09-16): the earlier getter-only frame timeout could expire while the natural-wonder cinematic locked engine event processing, announcing the stale pre-move value. `Events.UnitMovementPointsChanged` now wakes the settle watch after engine processing resumes; its numeric argument remains ignored because disembark reports the intermediate land-form maximum and never reports the subsequent zero. After the wake, WorldInput polls live `GetMovesRemaining()` through the existing stability window so the disembark follow-up is still captured. No popup-specific coupling and no pre-wake frame timeout. Natural-wonder discovery, tribal villages, embark, and disembark all passed in-game testing. Closed.
+- Front-end search timeout on Windows (added 2026-09-02): in the main menu, confirm the type-to-find buffer now expires after the timeout when result navigation is disabled, and that nothing else changed.
 - Otherwise none. All earlier in-game tests were closed as complete and passed at the user's direction on 2026-08-12.
 
 ## Next steps

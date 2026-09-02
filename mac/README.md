@@ -110,6 +110,7 @@ Everything Mac-specific in `src/`:
 
 - `src/UI/shared/caiUtils.lua`: the handshake, `IsMacBuild()`, and the Command key helpers `IsMacCommandKey`, `TrackCommandKey` and `IsCommandDown`.
 - `src/UI/uiManager/CAIUIScreenManager.lua`: `PollCharInput` from `OnUpdate`, and `TrackCommandKey` at the top of `HandleInput`.
+- The queue is drained in two places. Per frame from the contexts that own an update hook (`IntroScreen.lua`, `MainMenu.lua`, `WorldInput_CAI.lua`; those front-end hooks precede the accessibility section's `local mgr`, so they resolve `ExposedMembers.CAI_UIManager` at call time). And on every key-up at the top of `UIScreenManager:HandleInput`, because a context's update callback stops while a popup such as game setup or the leader picker sits above it, while key events still reach the manager; by the key-up the key-down has been handled and the character queued, which keeps the Windows order of key-down then character.
 - `src/UI/uiManager/CAIWidget_Base.lua`: the Command check in `UIWidget:OnHandleInput`.
 - `src/UI/uiManager/helpers/CAIWidgetHelpers_InputHelp.lua`: `GetAltKeyName` and the Command case in `FormatBinding`.
 - `src/UI/shared/CAISettings.lua`: `GetDefinitions` filters on the `Platform` column, `GetOptions` dispatches to `CAISettings.OptionProviders`, and the two providers `SpeechVoices` and `PrismBackends` build their dropdowns from the native layer. Provider rows carry `IsLiteral`, which the settings helper honors by showing the label text as is.
