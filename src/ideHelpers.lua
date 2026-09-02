@@ -29,6 +29,19 @@ function CAI.GetConfigValue(section, key, defaultValue) end
 ---@return string|nil
 function CAI.PollCharInput() end
 
+---Installed system voices, one per line as id, name and language separated by
+---tabs. Mac only; absent on Windows.
+---@return string
+function CAI.GetSpeechVoices() end
+
+---Id of the Spoken Content voice the system voice uses by default. Mac only.
+---@return string
+function CAI.GetSpeechSystemVoice() end
+
+---Prism backends available on this machine, one name per line. Mac only.
+---@return string
+function CAI.GetPrismBackends() end
+
 ---@param section string
 ---@param key string
 ---@param value string
