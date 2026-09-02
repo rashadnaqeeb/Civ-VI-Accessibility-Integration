@@ -23,6 +23,12 @@ CAI = {}
 ---@return string|nil
 function CAI.GetConfigValue(section, key, defaultValue) end
 
+---Next character typed into the game window, queued by the native layer, or
+---nil when the queue is empty. Mac only; on Windows the native layer calls the
+---registered char input handler directly and this function is absent.
+---@return string|nil
+function CAI.PollCharInput() end
+
 ---@param section string
 ---@param key string
 ---@param value string
@@ -236,6 +242,11 @@ function LoadCAISuspendedFlag() end
 
 ---@param suspended boolean
 function SaveCAISuspendedFlag(suspended) end
+
+---True on the Aspyr macOS build of the game, where Alt is the Option key and
+---the native layer is the injected dylib instead of the DLL.
+---@return boolean
+function IsMacBuild() end
 
 ---Speak each line in turn. When interrupt is true only the first line cuts
 ---ongoing speech; the rest queue so per-widget lines don't trample each other.
