@@ -998,6 +998,7 @@ end
 function UIScreenManager:OnUpdate()
     self:ExpireSearchBufferIfNeeded()
     self:UpdateAudioManager()
+    self:PollCharInput()
 end
 
 ---@param announce? boolean
@@ -1178,6 +1179,22 @@ function UIScreenManager:InitializeAudioManager()
     self.AudioManager:Initialize(self)
     ExposedMembers.CAI_AudioManager = self.AudioManager
     LogMessage("UI manager audio manager initialized")
+end
+
+-- On macOS the native layer cannot call into Lua, so typed characters are
+-- queued natively and drained here once per frame. On Windows PollCharInput
+-- does not exist and the registered handler is called directly.
+-- The cap bounds the work of one frame after a paste or a burst of typing;
+-- the native queue holds 256 characters, so the rest arrive on the next
+-- frames.
+local CHAR_INPUT_PER_FRAME = 64
+function UIScreenManager:PollCharInput()
+    if CAI == nil or CAI.PollCharInput == nil then return end
+    for _ = 1, CHAR_INPUT_PER_FRAME do
+        local char = CAI.PollCharInput()
+        if char == nil then break end
+        self:HandleCharInput(char)
+    end
 end
 
 function UIScreenManager:UpdateAudioManager()
