@@ -196,11 +196,22 @@ local function GetKeyDisplayName(keyCode)
     return Locale.Lookup(name)
 end
 
+-- The Alt modifier is the Option key on the Mac build; the game's own key
+-- name still says Alt there.
+local function GetAltKeyName()
+    if IsMacBuild() then return Locale.Lookup("LOC_CAI_KEY_OPTION") end
+    return Locale.Lookup(KEY_NAMES[Keys.VK_ALT])
+end
+
 local function FormatBinding(binding)
     local parts = {}
-    if binding.IsControl then parts[#parts + 1] = Locale.Lookup(KEY_NAMES[Keys.VK_CONTROL]) end
+    if binding.IsControl then
+        -- Mac key rule: Control on an arrow key is spoken as Command.
+        local tag = IsMacCommandKey(binding.Key) and "LOC_CAI_KEY_COMMAND" or KEY_NAMES[Keys.VK_CONTROL]
+        parts[#parts + 1] = Locale.Lookup(tag)
+    end
     if binding.IsShift then parts[#parts + 1] = Locale.Lookup(KEY_NAMES[Keys.VK_SHIFT]) end
-    if binding.IsAlt then parts[#parts + 1] = Locale.Lookup(KEY_NAMES[Keys.VK_ALT]) end
+    if binding.IsAlt then parts[#parts + 1] = GetAltKeyName() end
     parts[#parts + 1] = GetKeyDisplayName(binding.Key)
     return table.concat(parts, "+")
 end

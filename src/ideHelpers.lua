@@ -29,6 +29,11 @@ function CAI.GetConfigValue(section, key, defaultValue) end
 ---@return string|nil
 function CAI.PollCharInput() end
 
+---Live Command key state. Mac only; absent on Windows. Prefer the global
+---IsCommandDown(), which falls back to VK_LWIN tracking.
+---@return boolean
+function CAI.IsCommandDown() end
+
 ---Installed system voices, one per line as id, name and language separated by
 ---tabs. Mac only; absent on Windows.
 ---@return string
@@ -260,6 +265,23 @@ function SaveCAISuspendedFlag(suspended) end
 ---the native layer is the injected dylib instead of the DLL.
 ---@return boolean
 function IsMacBuild() end
+
+---Mac key rule: true when a Control binding on this key (the four arrow keys)
+---reads and matches as Command on the Mac build. Always false on Windows.
+---@param key Keys
+---@return boolean
+function IsMacCommandKey(key) end
+
+---Records Command (VK_LWIN) key-down and key-up events as the fallback for
+---IsCommandDown() when the native layer is not loaded. The UI manager calls
+---this for every key event.
+---@param input InputStruct
+function TrackCommandKey(input) end
+
+---Live Command key state on the Mac build (CAI.IsCommandDown when available,
+---else the tracked VK_LWIN state). Always false on Windows.
+---@return boolean
+function IsCommandDown() end
 
 ---Speak each line in turn. When interrupt is true only the first line cuts
 ---ongoing speech; the rest queue so per-widget lines don't trample each other.
