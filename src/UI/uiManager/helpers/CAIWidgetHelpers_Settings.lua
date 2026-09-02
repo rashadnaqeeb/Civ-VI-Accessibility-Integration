@@ -113,7 +113,7 @@ local function CreateDropdown(mgr, row)
     for _, opt in ipairs(GetOptions(row.SettingId)) do
         table.insert(options, {
             value = opt.Value,
-            label = Lookup(opt.Label),
+            label = opt.IsLiteral and opt.Label or Lookup(opt.Label),
             tooltip = opt.Tooltip and Lookup(opt.Tooltip) or nil,
         })
     end

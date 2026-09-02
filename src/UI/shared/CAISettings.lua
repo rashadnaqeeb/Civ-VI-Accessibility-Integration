@@ -77,15 +77,35 @@ function CAISettings.GetDefinition(settingId)
     return GetDefinition(settingId)
 end
 
+---Settings for this build only: Platform 'Any' plus 'Mac' or 'Windows'.
 function CAISettings.GetDefinitions()
+    local platform = IsMacBuild() and "Mac" or "Windows"
     return DB.ConfigurationQuery([[
         SELECT *
         FROM CAI_Settings
+        WHERE Platform = 'Any' OR Platform = ?
         ORDER BY Section, SortIndex, SettingId
-    ]]) or {}
+    ]], platform) or {}
 end
 
+-- ===========================================================================
+-- Runtime option providers (CAI_Settings.OptionsProvider)
+-- Each returns rows shaped like CAI_SettingOptions. Rows with IsLiteral set
+-- carry display text in Label instead of a locale tag.
+-- ===========================================================================
+
+CAISettings.OptionProviders = CAISettings.OptionProviders or {}
+
 function CAISettings.GetOptions(settingId)
+    local def = GetDefinition(settingId)
+    if def ~= nil and def.OptionsProvider ~= nil and def.OptionsProvider ~= "" then
+        local provider = CAISettings.OptionProviders[def.OptionsProvider]
+        if provider == nil then
+            print("CAISettings.GetOptions: unknown options provider " .. tostring(def.OptionsProvider))
+            return {}
+        end
+        return provider()
+    end
     return DB.ConfigurationQuery([[
         SELECT *
         FROM CAI_SettingOptions
