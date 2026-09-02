@@ -16,6 +16,10 @@
 
 - Fixed factual errors in the great work descriptions, such as Andrei Rublev's icons being called Byzantine and details invented from thumbnails.
 
+### Fixed
+
+- Type-to-find text now clears after the search timeout in the main menu and setup screens as well, not only in-game.
+
 ## [1.4.1] - 2026-08-30
 
 ### Fixed

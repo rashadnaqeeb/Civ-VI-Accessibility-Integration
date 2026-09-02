@@ -709,6 +709,15 @@ function UIScreenManager:HandleInput(input)
     local key = input:GetKey()
     TrackCommandKey(input)
 
+    -- Mac: drain the native character queue on every key-up as well as per
+    -- frame. Front-end update callbacks stop while a popup (game setup, the
+    -- leader picker) sits above their context, but key events still arrive,
+    -- and by the key-up the key-down has been handled and its character
+    -- queued, so the order matches Windows (key-down, then character).
+    -- Runs before the suspended check so stale characters are consumed, not
+    -- replayed on resume. No-op on Windows.
+    if msg == KeyEvents.KeyUp then self:PollCharInput() end
+
     -- Suspended: the manager is inert. Only global bindings (the mod-toggle)
     -- are evaluated; everything else returns false so vanilla input proceeds.
     if not self:IsCAIActive() then
@@ -1183,8 +1192,9 @@ function UIScreenManager:InitializeAudioManager()
 end
 
 -- On macOS the native layer cannot call into Lua, so typed characters are
--- queued natively and drained here once per frame. On Windows PollCharInput
--- does not exist and the registered handler is called directly.
+-- queued natively and drained here, once per frame from the contexts that
+-- own an update hook and on every key-up from HandleInput. On Windows
+-- PollCharInput does not exist and the registered handler is called directly.
 -- The cap bounds the work of one frame after a paste or a burst of typing;
 -- the native queue holds 256 characters, so the rest arrive on the next
 -- frames.
