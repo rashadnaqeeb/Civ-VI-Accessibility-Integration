@@ -33,6 +33,7 @@ Always treat `project_status.md` as the central working memory. Update it after 
 - Architecture: 64-bit.
 - Mod loader: none. The project uses Civ VI's built-in Lua mod system through `.modinfo`.
 - Deploy model: `src/` is symlinked into the game's mod folder; no copy/deploy step is normally needed.
+- macOS: the mod also runs on the Aspyr Steam build through a native layer under `mac/` (`libcai.dylib`, built with `mac/dev/build.sh`). Design, internals and the Mac-specific Lua paths are in `mac/README.md`; Lua-facing facts are in `docs/game-api.md` under "macOS (Aspyr) build". Any change to `caiUtils.lua`, the input matcher or the settings framework should keep the Windows path unchanged and the Mac branches behind `IsMacBuild()` or `CAI.X ~= nil` checks.
 
 ## Startup Gate Before Coding
 
