@@ -25,3 +25,6 @@ age-of-decadence-analyse.txt
 nul
 *.zip
 __pycache__/
+
+# macOS release packages built by mac/dev/package.sh
+release/
