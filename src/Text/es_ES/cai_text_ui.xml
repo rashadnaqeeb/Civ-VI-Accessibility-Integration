@@ -6503,6 +6503,54 @@
     <Replace Tag="LOC_CAI_SETTING_SECTION_CURSOR" Language="es_ES">
       <Text>Cursor</Text>
     </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SECTION_SPEECH" Language="es_ES">
+      <Text>Voz</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER" Language="es_ES">
+      <Text>Salida de voz</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_TOOLTIP" Language="es_ES">
+      <Text>Quién habla. Automático usa VoiceOver a través de Prism cuando VoiceOver está activo; si no, la voz del sistema. Prism habla con VoiceOver o con la síntesis de Apple. Voz del sistema reproduce directamente la voz de Contenido hablado.</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_AUTO" Language="es_ES">
+      <Text>Automático</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_PRISM" Language="es_ES">
+      <Text>Prism</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_SYSTEM_VOICE" Language="es_ES">
+      <Text>Voz del sistema</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_PRISM_BACKEND" Language="es_ES">
+      <Text>Motor de Prism</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_PRISM_BACKEND_TOOLTIP" Language="es_ES">
+      <Text>El lector de pantalla o motor de voz que usa Prism. Automático elige el mejor disponible.</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_PRISM_BACKEND_AUTO" Language="es_ES">
+      <Text>Automático (el mejor disponible)</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOICE_DEFAULT" Language="es_ES">
+      <Text>Predeterminada del sistema</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOLUME" Language="es_ES">
+      <Text>Volumen de la voz</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOLUME_TOOLTIP" Language="es_ES">
+      <Text>Volumen de la salida hablada, de 0 a 100.</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_RATE" Language="es_ES">
+      <Text>Velocidad de la voz</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_RATE_TOOLTIP" Language="es_ES">
+      <Text>Velocidad de la salida hablada, de 0 (la más lenta) a 100 (la más rápida).</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOICE" Language="es_ES">
+      <Text>Voz</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOICE_TOOLTIP" Language="es_ES">
+      <Text>La voz del sistema usada para la salida hablada. Las voces se instalan en Ajustes del Sistema, en Accesibilidad, Contenido hablado.</Text>
+    </Replace>
     <Replace Tag="LOC_CAI_SETTING_SECTION_EVENTS" Language="es_ES">
       <Text>Eventos</Text>
     </Replace>

@@ -6525,6 +6525,54 @@
     <Replace Tag="LOC_CAI_SETTING_SECTION_CURSOR" Language="zh_Hans_CN">
       <Text>光标</Text>
     </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SECTION_SPEECH" Language="zh_Hans_CN">
+      <Text>语音</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER" Language="zh_Hans_CN">
+      <Text>语音输出</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_TOOLTIP" Language="zh_Hans_CN">
+      <Text>由谁朗读。自动：VoiceOver 运行时通过 Prism 使用 VoiceOver，否则使用系统声音。Prism：连接 VoiceOver 或 Apple 语音合成。系统声音：直接播放“朗读内容”的声音。</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_AUTO" Language="zh_Hans_CN">
+      <Text>自动</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_PRISM" Language="zh_Hans_CN">
+      <Text>Prism</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_SYSTEM_VOICE" Language="zh_Hans_CN">
+      <Text>系统声音</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_PRISM_BACKEND" Language="zh_Hans_CN">
+      <Text>Prism 后端</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_PRISM_BACKEND_TOOLTIP" Language="zh_Hans_CN">
+      <Text>Prism 使用的屏幕阅读器或语音引擎。自动会选择可用的最佳选项。</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_PRISM_BACKEND_AUTO" Language="zh_Hans_CN">
+      <Text>自动（可用的最佳选项）</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOICE_DEFAULT" Language="zh_Hans_CN">
+      <Text>系统默认</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOLUME" Language="zh_Hans_CN">
+      <Text>语音音量</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOLUME_TOOLTIP" Language="zh_Hans_CN">
+      <Text>朗读输出的音量，0 到 100。</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_RATE" Language="zh_Hans_CN">
+      <Text>语速</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_RATE_TOOLTIP" Language="zh_Hans_CN">
+      <Text>朗读输出的速度，0（最慢）到 100（最快）。</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOICE" Language="zh_Hans_CN">
+      <Text>声音</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOICE_TOOLTIP" Language="zh_Hans_CN">
+      <Text>用于朗读输出的系统声音。声音在“系统设置”的“辅助功能”、“朗读内容”中安装。</Text>
+    </Replace>
     <Replace Tag="LOC_CAI_SETTING_SECTION_EVENTS" Language="zh_Hans_CN">
       <Text>事件</Text>
     </Replace>

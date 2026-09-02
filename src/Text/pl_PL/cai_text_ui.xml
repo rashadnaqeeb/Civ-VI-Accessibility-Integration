@@ -6523,6 +6523,54 @@
     <Replace Tag="LOC_CAI_SETTING_SECTION_CURSOR" Language="pl_PL">
       <Text>Kursor</Text>
     </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SECTION_SPEECH" Language="pl_PL">
+      <Text>Mowa</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER" Language="pl_PL">
+      <Text>Wyjście mowy</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_TOOLTIP" Language="pl_PL">
+      <Text>Kto mówi. Auto używa VoiceOver przez Prism, gdy VoiceOver jest uruchomiony, w przeciwnym razie głosu systemowego. Prism łączy się z VoiceOver lub syntezą Apple. Głos systemowy odtwarza bezpośrednio głos Treści mówionej.</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_AUTO" Language="pl_PL">
+      <Text>Auto</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_PRISM" Language="pl_PL">
+      <Text>Prism</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_SYSTEM_VOICE" Language="pl_PL">
+      <Text>Głos systemowy</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_PRISM_BACKEND" Language="pl_PL">
+      <Text>Silnik Prism</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_PRISM_BACKEND_TOOLTIP" Language="pl_PL">
+      <Text>Czytnik ekranu lub silnik mowy używany przez Prism. Auto wybiera najlepszy dostępny.</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_PRISM_BACKEND_AUTO" Language="pl_PL">
+      <Text>Auto (najlepszy dostępny)</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOICE_DEFAULT" Language="pl_PL">
+      <Text>Domyślny systemowy</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOLUME" Language="pl_PL">
+      <Text>Głośność mowy</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOLUME_TOOLTIP" Language="pl_PL">
+      <Text>Głośność wypowiadanego tekstu, od 0 do 100.</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_RATE" Language="pl_PL">
+      <Text>Tempo mowy</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_RATE_TOOLTIP" Language="pl_PL">
+      <Text>Szybkość wypowiadanego tekstu, od 0 (najwolniej) do 100 (najszybciej).</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOICE" Language="pl_PL">
+      <Text>Głos</Text>
+    </Replace>
+    <Replace Tag="LOC_CAI_SETTING_SPEECH_VOICE_TOOLTIP" Language="pl_PL">
+      <Text>Głos systemowy używany do wypowiadania tekstu. Głosy instaluje się w Ustawieniach systemowych, w sekcji Dostępność, Treść mówiona.</Text>
+    </Replace>
     <Replace Tag="LOC_CAI_SETTING_SECTION_EVENTS" Language="pl_PL">
       <Text>Wydarzenia</Text>
     </Replace>

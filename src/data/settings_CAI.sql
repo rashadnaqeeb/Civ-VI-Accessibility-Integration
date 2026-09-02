@@ -271,3 +271,30 @@ VALUES
     ('AnnounceUnitMovesBarbarian', 'civilian', 'LOC_CAI_SETTING_UNIT_MOVE_FILTER_CIVILIAN', 'LOC_CAI_SETTING_UNIT_MOVE_FILTER_CIVILIAN_TOOLTIP', 20),
     ('AnnounceUnitMovesBarbarian', 'both', 'LOC_CAI_SETTING_UNIT_MOVE_FILTER_BOTH', 'LOC_CAI_SETTING_UNIT_MOVE_FILTER_BOTH_TOOLTIP', 30),
     ('AnnounceUnitMovesBarbarian', 'none', 'LOC_CAI_SETTING_UNIT_MOVE_FILTER_NONE', 'LOC_CAI_SETTING_UNIT_MOVE_FILTER_NONE_TOOLTIP', 40);
+
+-- Speech output settings of the macOS native layer, modeled on the Slay the
+-- Spire 2 mod: a handler picks who speaks (auto, prism, the streamed system
+-- voice), prism has a backend choice, the system voice has voice, rate and
+-- volume. The Windows DLL speaks through the running screen reader and has none.
+INSERT OR REPLACE INTO CAI_Settings
+    (SettingId, Section, SortIndex, ValueType, UIType, DefaultValue, Label, Tooltip, MinValue, MaxValue, StepValue, PageStepValue, Platform, OptionsProvider)
+VALUES
+    ('SpeechHandler', 'Speech', 1, 'string', 'dropdown', 'systemvoice',
+     'LOC_CAI_SETTING_SPEECH_HANDLER', 'LOC_CAI_SETTING_SPEECH_HANDLER_TOOLTIP', NULL, NULL, NULL, NULL, 'Mac', NULL),
+
+    ('PrismBackend', 'Speech', 2, 'string', 'dropdown', 'auto',
+     'LOC_CAI_SETTING_PRISM_BACKEND', 'LOC_CAI_SETTING_PRISM_BACKEND_TOOLTIP', NULL, NULL, NULL, NULL, 'Mac', 'PrismBackends'),
+
+    ('SpeechVoice', 'Speech', 10, 'string', 'dropdown', '',
+     'LOC_CAI_SETTING_SPEECH_VOICE', 'LOC_CAI_SETTING_SPEECH_VOICE_TOOLTIP', NULL, NULL, NULL, NULL, 'Mac', 'SpeechVoices'),
+
+    ('SpeechRate', 'Speech', 20, 'number', 'slider', '50',
+     'LOC_CAI_SETTING_SPEECH_RATE', 'LOC_CAI_SETTING_SPEECH_RATE_TOOLTIP', 0, 100, 1, 10, 'Mac', NULL),
+
+    ('SpeechVolume', 'Speech', 30, 'number', 'slider', '80',
+     'LOC_CAI_SETTING_SPEECH_VOLUME', 'LOC_CAI_SETTING_SPEECH_VOLUME_TOOLTIP', 0, 100, 5, 10, 'Mac', NULL);
+
+INSERT OR REPLACE INTO CAI_SettingOptions (SettingId, Value, Label, SortIndex) VALUES
+    ('SpeechHandler', 'auto', 'LOC_CAI_SETTING_SPEECH_HANDLER_AUTO', 1),
+    ('SpeechHandler', 'prism', 'LOC_CAI_SETTING_SPEECH_HANDLER_PRISM', 2),
+    ('SpeechHandler', 'systemvoice', 'LOC_CAI_SETTING_SPEECH_HANDLER_SYSTEM_VOICE', 3);

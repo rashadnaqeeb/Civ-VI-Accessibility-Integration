@@ -6564,6 +6564,54 @@
     <Row Tag="LOC_CAI_SETTING_SECTION_CURSOR" Language="en_US">
       <Text>Cursor</Text>
     </Row>
+    <Row Tag="LOC_CAI_SETTING_SECTION_SPEECH" Language="en_US">
+      <Text>Speech</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_HANDLER" Language="en_US">
+      <Text>Speech output</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_HANDLER_TOOLTIP" Language="en_US">
+      <Text>Who speaks. Auto uses VoiceOver through Prism when VoiceOver is running, otherwise the system voice. Prism talks to VoiceOver or Apple speech. System voice plays the Spoken Content voice directly.</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_HANDLER_AUTO" Language="en_US">
+      <Text>Auto</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_HANDLER_PRISM" Language="en_US">
+      <Text>Prism</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_HANDLER_SYSTEM_VOICE" Language="en_US">
+      <Text>System voice</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_PRISM_BACKEND" Language="en_US">
+      <Text>Prism backend</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_PRISM_BACKEND_TOOLTIP" Language="en_US">
+      <Text>The screen reader or speech engine Prism uses. Auto picks the best one available.</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_PRISM_BACKEND_AUTO" Language="en_US">
+      <Text>Auto (best available)</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_VOICE_DEFAULT" Language="en_US">
+      <Text>System default</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_VOLUME" Language="en_US">
+      <Text>Speech volume</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_VOLUME_TOOLTIP" Language="en_US">
+      <Text>Volume of the spoken output, from 0 to 100.</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_RATE" Language="en_US">
+      <Text>Speech rate</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_RATE_TOOLTIP" Language="en_US">
+      <Text>Speed of the spoken output, from 0 (slowest) to 100 (fastest).</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_VOICE" Language="en_US">
+      <Text>Voice</Text>
+    </Row>
+    <Row Tag="LOC_CAI_SETTING_SPEECH_VOICE_TOOLTIP" Language="en_US">
+      <Text>The system voice used for spoken output. Voices are installed in System Settings under Accessibility, Spoken Content.</Text>
+    </Row>
     <Row Tag="LOC_CAI_SETTING_SECTION_EVENTS" Language="en_US">
       <Text>Events</Text>
     </Row>

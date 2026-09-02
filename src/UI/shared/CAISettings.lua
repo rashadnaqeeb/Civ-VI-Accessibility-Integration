@@ -96,6 +96,45 @@ end
 
 CAISettings.OptionProviders = CAISettings.OptionProviders or {}
 
+---Installed system voices from the macOS native layer, sorted by name, with
+---the Spoken Content voice as the first, default entry (empty value).
+function CAISettings.OptionProviders.SpeechVoices()
+    local options = {}
+    if CAI == nil or CAI.GetSpeechVoices == nil then return options end
+    local defaultId = CAI.GetSpeechSystemVoice() or ""
+    local defaultName = nil
+    local text = CAI.GetSpeechVoices() or ""
+    for line in (text .. "\n"):gmatch("(.-)\n") do
+        local id, name, language = line:match("^([^\t]*)\t([^\t]*)\t([^\t]*)$")
+        if id ~= nil and id ~= "" then
+            local label = name
+            if language ~= nil and language ~= "" then
+                label = name .. " (" .. language .. ")"
+            end
+            if id == defaultId then defaultName = label end
+            table.insert(options, { Value = id, Label = label, IsLiteral = true })
+        end
+    end
+    table.sort(options, function(a, b) return a.Label < b.Label end)
+    local defaultLabel = Locale.Lookup("LOC_CAI_SETTING_SPEECH_VOICE_DEFAULT")
+    if defaultName ~= nil then defaultLabel = defaultLabel .. ": " .. defaultName end
+    table.insert(options, 1, { Value = "", Label = defaultLabel, IsLiteral = true })
+    return options
+end
+
+---Prism backends usable on this machine, after an automatic choice.
+function CAISettings.OptionProviders.PrismBackends()
+    local options = { { Value = "auto", Label = "LOC_CAI_SETTING_PRISM_BACKEND_AUTO" } }
+    if CAI == nil or CAI.GetPrismBackends == nil then return options end
+    local text = CAI.GetPrismBackends() or ""
+    for line in (text .. "\n"):gmatch("(.-)\n") do
+        if line ~= "" then
+            table.insert(options, { Value = line, Label = line, IsLiteral = true })
+        end
+    end
+    return options
+end
+
 function CAISettings.GetOptions(settingId)
     local def = GetDefinition(settingId)
     if def ~= nil and def.OptionsProvider ~= nil and def.OptionsProvider ~= "" then
