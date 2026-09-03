@@ -20,6 +20,7 @@
 
 - Type-to-find text now clears after the search timeout in the main menu and setup screens as well, not only in-game.
 - On the Mac, cursor sounds that follow another sound, such as the terrain sound after a river crossing or the forest and road sounds after the terrain, no longer arrive up to a second late. The same fix makes the type-to-find timeout and other short delays as precise as on Windows.
+- On the Mac, typing with a Japanese, Chinese or Korean input source no longer puts the raw keystrokes of a composition into type-to-find or a text field.
 - On the Mac, sounds recover from a headphone or output device change while game setup or a picker is open, on the next key press, instead of only after leaving it.
 - The map search waits the same third of a second after typing on every machine, instead of a number of frames that depended on the frame rate.
 

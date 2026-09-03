@@ -2,7 +2,10 @@
 // key the game window receives. It stops speech on every key press, as a
 // screen reader does, and queues the characters typed into text fields; Lua
 // drains that queue once per frame through CAI.PollCharInput(), so the native
-// side never calls into Lua.
+// side never calls into Lua. It also tracks input method composition (the
+// marked text of a Japanese, Chinese or Korean input source) for
+// CAI.IsImeComposing(), the Mac side of the WM_IME_STARTCOMPOSITION and
+// WM_IME_ENDCOMPOSITION hooks of the Windows DLL.
 #import <AppKit/AppKit.h>
 #include "cai.h"
 #include "speechRouter.h"
@@ -23,6 +26,17 @@ id g_monitor = nil;                            // main thread only
 NSEventModifierFlags g_modifiers = 0;          // main thread only: the modifiers held at the last event
 std::atomic<bool> g_installRequested{false};
 std::atomic<bool> g_charInput{false};          // written by the game thread, read by the monitor on the main thread
+std::atomic<bool> g_composing{false};          // sampled on the main thread around each key, read by the game thread
+
+// Main thread. True while the first responder holds marked text, the
+// uncommitted part of an input method composition. The game's view adopts
+// NSTextInputClient (its binary references the protocol), so an input method
+// composes through it; a responder without a text input context never
+// composes and reads as false.
+bool IsComposing() {
+    id client = [NSTextInputContext currentInputContext].client;
+    return client != nil && [client respondsToSelector:@selector(hasMarkedText)] && [client hasMarkedText];
+}
 
 // A key went down. Stop what the mod is voicing, as a screen reader stops
 // speaking on a key press, before the game sees the key and Lua speaks for
@@ -46,14 +60,14 @@ void OnFlagsChanged(NSEvent* e) {
     if (pressed) OnKeyPressed();
 }
 
-// Queue the text a key-down typed, for CAI.PollCharInput().
-void OnKeyDown(NSEvent* e) {
+// The text a key-down typed, as UTF-8; empty when it typed none.
+std::string TypedText(NSEvent* e) {
     NSEventModifierFlags mods = [e modifierFlags] & NSEventModifierFlagDeviceIndependentFlagsMask;
     // Characters typed with Command, Control, Option or Function held are
     // key bindings, not text (Option would produce dead-key characters).
-    if (mods & (NSEventModifierFlagCommand | NSEventModifierFlagControl | NSEventModifierFlagOption | NSEventModifierFlagFunction)) return;
+    if (mods & (NSEventModifierFlagCommand | NSEventModifierFlagControl | NSEventModifierFlagOption | NSEventModifierFlagFunction)) return {};
     NSString* chars = [e characters];
-    if (chars.length == 0) return;
+    if (chars.length == 0) return {};
     std::string out;
     for (NSUInteger i = 0; i < chars.length; ++i) {
         unichar c = [chars characterAtIndex:i];
@@ -71,10 +85,32 @@ void OnKeyDown(NSEvent* e) {
         if (CFStringIsSurrogateLowCharacter(c)) continue;
         if (const char* utf8 = [[NSString stringWithCharacters:&c length:1] UTF8String]) out += utf8;
     }
-    if (out.empty()) return;
-    std::lock_guard<std::mutex> lock(g_mutex);
-    g_queue.push_back(out);
-    if (g_queue.size() > kMaxQueuedCharacters) g_queue.pop_front();
+    return out;
+}
+
+// A key-down: track composition and queue the text it typed, for
+// CAI.PollCharInput(). The monitor sees the key before the window does, so
+// the composition state is sampled twice: now, when marked text means the
+// key edits or commits a composition and types nothing, and again after the
+// window has handled it, when marked text means the key started one and its
+// raw character belongs to the input method. The queueing therefore happens
+// in that later block; it runs on the next turn of the main run loop, still
+// long before Lua drains the queue for the key.
+void OnKeyDown(NSEvent* e) {
+    if (IsComposing()) {
+        g_composing.store(true);
+        dispatch_async(dispatch_get_main_queue(), ^{ g_composing.store(IsComposing()); });
+        return;
+    }
+    std::string text = g_charInput.load(std::memory_order_relaxed) ? TypedText(e) : std::string();
+    dispatch_async(dispatch_get_main_queue(), ^{
+        bool composing = IsComposing();
+        g_composing.store(composing);
+        if (composing || text.empty()) return;
+        std::lock_guard<std::mutex> lock(g_mutex);
+        g_queue.push_back(text);
+        if (g_queue.size() > kMaxQueuedCharacters) g_queue.pop_front();
+    });
 }
 
 // Runs on the main thread. The monitor stays installed for the life of the
@@ -89,7 +125,7 @@ void InstallMonitor() {
             return e;
         }
         OnKeyPressed();
-        if (g_charInput.load(std::memory_order_relaxed)) OnKeyDown(e);
+        OnKeyDown(e);
         return e;
     }];
     Log("keyboard: NSEvent monitor %s", g_monitor ? "installed" : "FAILED to install");
@@ -108,6 +144,10 @@ void CharInputEnable(bool enable) {
         std::lock_guard<std::mutex> lock(g_mutex);
         g_queue.clear();
     }
+}
+
+bool KeyboardIsComposing() {
+    return g_composing.load();
 }
 
 bool CharInputPoll(std::string& out) {
