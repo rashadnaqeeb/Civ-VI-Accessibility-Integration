@@ -28,19 +28,44 @@ constexpr double kLookaheadSeconds = 0.002;
 // How long the limiter's gain takes to recover after a peak.
 constexpr double kReleaseSeconds = 0.05;
 
+// Where the speech starts: the first sample above the silence threshold,
+// less kKeepEdgeSeconds where the input has it. count when all is silence.
+inline size_t TrimStart(const float* samples, size_t count, double sampleRate) {
+    size_t start = 0;
+    while (start < count && std::fabs(samples[start]) <= kSilenceThreshold) start++;
+    if (start == count) return count;
+    size_t keep = (size_t)std::llround(kKeepEdgeSeconds * sampleRate);
+    return start > keep ? start - keep : 0;
+}
+
+// Where the speech ends: one past the last sample above the silence
+// threshold, plus kKeepEdgeSeconds where the input has it. 0 when all is silence.
+inline size_t TrimEnd(const float* samples, size_t count, double sampleRate) {
+    size_t end = count;
+    while (end > 0 && std::fabs(samples[end - 1]) <= kSilenceThreshold) end--;
+    if (end == 0) return 0;
+    size_t keep = (size_t)std::llround(kKeepEdgeSeconds * sampleRate);
+    return std::min(count, end + keep);
+}
+
 // The speech between the first and last samples above the silence threshold,
 // plus kKeepEdgeSeconds either side where the input has it. Empty when nothing
 // rises above the threshold.
 inline std::vector<float> Trim(const float* samples, size_t count, double sampleRate) {
-    size_t start = 0;
-    while (start < count && std::fabs(samples[start]) <= kSilenceThreshold) start++;
+    size_t start = TrimStart(samples, count, sampleRate);
     if (start == count) return {};
-    size_t end = count - 1;
-    while (end > start && std::fabs(samples[end]) <= kSilenceThreshold) end--;
-    size_t keep = (size_t)std::llround(kKeepEdgeSeconds * sampleRate);
-    start = start > keep ? start - keep : 0;
-    end = std::min(count - 1, end + keep);
-    return std::vector<float>(samples + start, samples + end + 1);
+    size_t end = TrimEnd(samples, count, sampleRate);
+    return std::vector<float>(samples + start, samples + end);
+}
+
+// The gain that brings samples to kTargetRms, at most kMaxGain; 1 for silence.
+inline float GainFor(const float* samples, size_t count) {
+    if (count == 0) return 1.0f;
+    double sumSquares = 0;
+    for (size_t i = 0; i < count; i++) sumSquares += (double)samples[i] * samples[i];
+    float rms = (float)std::sqrt(sumSquares / (double)count);
+    if (rms <= 0.0f) return 1.0f;
+    return std::min(kMaxGain, kTargetRms / rms);
 }
 
 // Multiply samples by gain in place, with a look-ahead peak limiter holding
@@ -87,12 +112,7 @@ inline void Limit(std::vector<float>& samples, float gain, double sampleRate) {
 // Bring samples to kTargetRms in place, through Limit so the peaks stay
 // under the ceiling. Silence is left alone. Returns the gain applied.
 inline float Normalize(std::vector<float>& samples, double sampleRate) {
-    if (samples.empty()) return 1.0f;
-    double sumSquares = 0;
-    for (float s : samples) sumSquares += (double)s * s;
-    float rms = (float)std::sqrt(sumSquares / (double)samples.size());
-    if (rms <= 0.0f) return 1.0f;
-    float gain = std::min(kMaxGain, kTargetRms / rms);
+    float gain = GainFor(samples.data(), samples.size());
     Limit(samples, gain, sampleRate);
     return gain;
 }
