@@ -23,6 +23,16 @@
 //   AVAudioEngine. The player plays scheduled buffers back to back, so
 //   consecutive lines have no gap beyond that 50 ms.
 //
+// - A line shorter than kSegmentSeconds of audio is scheduled whole once its
+//   end marker arrives, with the gain measured over the whole line. A longer
+//   line (a civilopedia page spoken as one line) would otherwise start late
+//   by its full render time, about 2 percent of its spoken length, so it is
+//   scheduled in segments as the render delivers them: the first segment,
+//   trimmed at its start, fixes the line's gain from its own loudness, later
+//   segments reuse that gain under the limiter, and the last one, trimmed at
+//   its end, carries the gap. Segments queue back to back on the player,
+//   which reads as one line.
+//
 // - One render is in flight at a time; further lines wait in a pending queue.
 //   A render cannot be aborted (stopSpeakingAtBoundary: does not touch a
 //   write), so an interrupt "retires" the render in flight: its synthesizer
@@ -72,6 +82,7 @@ namespace {
 #endif
 constexpr double kInitialRate = CAI_SPEECH_INITIAL_RATE; // the player's format until the first render says otherwise
 constexpr float kGapSeconds = 0.05f;        // silence between utterances, as a screen reader would pause
+constexpr double kSegmentSeconds = 1.0;     // rendered audio that is scheduled ahead of a long line's end marker
 constexpr double kStallTimeoutSeconds = 30; // a render that delivers nothing for this long is abandoned (cold voice start can take seconds)
 constexpr int kEndMarkers = 2;              // empty buffers AVSpeech sends after the last audio of an utterance
 constexpr double kSlowRenderSeconds = 2;    // a render slower than this is noted in the log
@@ -136,6 +147,20 @@ struct Render {
     std::atomic<Clock::time_point> lastProgress{Clock::now()};
     std::string text;                 // for the log only
     bool firstChunkLogged = false;
+    // Progressive scheduling, see FlushLocked. scheduled is under mutex; the
+    // rest is touched on the stream's queue only.
+    size_t scheduled = 0;             // samples already handed to the player
+    std::atomic<bool> flushQueued{false}; // a flush block is on the stream's queue
+    float gain = 0;                   // the line's gain, fixed by its first segment; 0 until then
+    int lineNo = 0;                   // the player's line number, assigned with the first segment
+    int segments = 0;                 // segments scheduled so far
+
+    // Enough unscheduled audio for a segment. The caller dispatches a flush
+    // when this is true and no flush is on the queue yet.
+    bool WantsFlush() {
+        std::lock_guard<std::mutex> lock(mutex);
+        return sampleRate > 0 && (double)(samples.size() - scheduled) >= kSegmentSeconds * sampleRate;
+    }
 
     // AVSpeech is finished with the synthesizer: both end markers arrived, or
     // the render ended and the second marker has not come for the stall
@@ -314,10 +339,11 @@ bool Connect(Stream& s, double sampleRate) {
     return true;
 }
 
-// Copy the samples plus the gap into an AVAudioPCMBuffer and queue it on the
-// player node, which plays it after whatever it already holds. Caller holds s.mutex.
-void Schedule(Stream& s, const std::vector<float>& trimmed, double sampleRate, const RenderPtr& render) {
-    if (trimmed.empty()) return;
+// Copy the samples, plus the gap when this is the line's last segment, into
+// an AVAudioPCMBuffer and queue it on the player node, which plays it after
+// whatever it already holds. Caller holds s.mutex.
+void Schedule(Stream& s, const std::vector<float>& trimmed, double sampleRate, const RenderPtr& render, bool last) {
+    if (trimmed.empty() && !last) return;
 
     // The engine stops on its own after an output device change; bring it back
     // first. Scheduling on a node whose engine is not running raises an
@@ -342,7 +368,9 @@ void Schedule(Stream& s, const std::vector<float>& trimmed, double sampleRate, c
         if (!Connect(s, sampleRate)) return;
     }
 
-    AVAudioFrameCount frames = (AVAudioFrameCount)(trimmed.size() + s.gap.size());
+    size_t gapFrames = last ? s.gap.size() : 0;
+    AVAudioFrameCount frames = (AVAudioFrameCount)(trimmed.size() + gapFrames);
+    if (frames == 0) return;
     AVAudioPCMBuffer* buffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:s.format frameCapacity:frames];
     if (!buffer || !buffer.floatChannelData) {
         Warn("AVAudioPCMBuffer init failed for %u frames", frames);
@@ -350,10 +378,12 @@ void Schedule(Stream& s, const std::vector<float>& trimmed, double sampleRate, c
     }
     float* channel = buffer.floatChannelData[0];
     memcpy(channel, trimmed.data(), trimmed.size() * sizeof(float));
-    memcpy(channel + trimmed.size(), s.gap.data(), s.gap.size() * sizeof(float));
+    memcpy(channel + trimmed.size(), s.gap.data(), gapFrames * sizeof(float));
     buffer.frameLength = frames;
 
-    int lineNo = ++s.linesScheduled;
+    if (render->lineNo == 0) render->lineNo = ++s.linesScheduled;
+    int lineNo = render->lineNo;
+    int segment = ++render->segments;
     double durationMs = trimmed.size() / sampleRate * 1000;
     std::string text = render->text;
     std::shared_ptr<Stream::PlayState> play = s.play;
@@ -365,9 +395,9 @@ void Schedule(Stream& s, const std::vector<float>& trimmed, double sampleRate, c
                    completionHandler:^(AVAudioPlayerNodeCompletionCallbackType type) {
                        if (play->generation.load() == generation) {
                            play->outstanding.fetch_sub(1);
-                           Log("played back line %d (\"%s\")", lineNo, text.c_str());
+                           if (last) Log("played back line %d (\"%s\")", lineNo, text.c_str());
                        } else {
-                           Log("discarded line %d (\"%s\")", lineNo, text.c_str());
+                           Log("discarded line %d%s (\"%s\")", lineNo, last ? "" : " (a segment)", text.c_str());
                        }
                    }];
         [s.player play]; // idempotent while playing; needed after a stop or an engine restart
@@ -376,8 +406,46 @@ void Schedule(Stream& s, const std::vector<float>& trimmed, double sampleRate, c
         Warn("scheduleBuffer raised %s: %s", ToStd(ex.name).c_str(), ToStd(ex.reason).c_str());
         return;
     }
-    Log("scheduled line %d: %.0f ms of speech + %.0f ms gap at %.0f Hz (\"%s\")",
-        lineNo, durationMs, kGapSeconds * 1000, sampleRate, text.c_str());
+    if (last && segment == 1) {
+        Log("scheduled line %d: %.0f ms of speech + %.0f ms gap at %.0f Hz, gain %.2fx (\"%s\")",
+            lineNo, durationMs, kGapSeconds * 1000, sampleRate, render->gain, text.c_str());
+    } else {
+        Log("scheduled line %d segment %d%s: %.0f ms of speech%s at %.0f Hz, gain %.2fx (\"%s\")",
+            lineNo, segment, last ? " (last)" : "", durationMs, last ? " + gap" : "", sampleRate, render->gain, text.c_str());
+    }
+}
+
+// Hand the render's unscheduled audio to the player: the whole remainder
+// when the end marker has arrived (final), else everything delivered so far.
+// The first segment waits until the audio rises above silence, so the trim
+// of the leading silence sees all of it, and sets the line's gain; the last
+// segment is trimmed at its end and carries the gap. Caller holds s.mutex.
+void FlushLocked(Stream& s, const RenderPtr& render, bool final) {
+    std::vector<float> chunk;
+    double sampleRate;
+    {
+        std::lock_guard<std::mutex> lock(render->mutex);
+        sampleRate = render->sampleRate;
+        if (!render->problem.empty() || sampleRate <= 0) return;
+        const float* data = render->samples.data();
+        size_t total = render->samples.size();
+        size_t from = render->scheduled;
+        size_t to = total;
+        if (render->segments == 0) {
+            from = speech::samples::TrimStart(data, total, sampleRate);
+            if (from == total && !final) return; // silence so far; wait for speech
+        }
+        if (final) to = std::max(from, speech::samples::TrimEnd(data, total, sampleRate));
+        chunk.assign(data + from, data + to);
+        render->scheduled = total;
+    }
+    if (final && render->segments == 0 && chunk.empty()) {
+        Warn("render delivered only silence; nothing to play");
+        return;
+    }
+    if (render->gain == 0) render->gain = speech::samples::GainFor(chunk.data(), chunk.size());
+    speech::samples::Limit(chunk, render->gain, sampleRate);
+    Schedule(s, chunk, sampleRate, render, final);
 }
 
 // ---- rendering ----
@@ -445,7 +513,7 @@ void StopLocked(Stream& s) {
     StopPlayer(s);
 }
 
-// Trim, normalize, and schedule a finished render. Caller holds s.mutex.
+// Schedule what remains of a finished render. Caller holds s.mutex.
 void FinishLocked(Stream& s, const RenderPtr& render) {
     s.inFlight = nullptr;
     double seconds = render->SecondsSinceStart();
@@ -460,10 +528,7 @@ void FinishLocked(Stream& s, const RenderPtr& render) {
         Warn("render delivered no audio; nothing to play");
         return;
     }
-    std::vector<float> trimmed = speech::samples::Trim(render->samples.data(), render->samples.size(), render->sampleRate);
-    float gain = speech::samples::Normalize(trimmed, render->sampleRate);
-    Log("trimmed %zu -> %zu frames, gain %.2fx", render->samples.size(), trimmed.size(), gain);
-    Schedule(s, trimmed, render->sampleRate, render);
+    FlushLocked(s, render, true);
 }
 
 // Runs on s.queue when a render's end marker arrives.
@@ -472,6 +537,14 @@ void OnRenderEnded(Stream& s, const RenderPtr& render) {
     Reap(s);
     if (s.inFlight == render) FinishLocked(s, render);
     StartNextLocked(s);
+}
+
+// Runs on s.queue when a render has a segment's worth of unscheduled audio.
+// A retired render is left alone: its audio was dropped with the interrupt.
+void OnRenderProgress(Stream& s, const RenderPtr& render) {
+    std::lock_guard<std::mutex> lock(s.mutex);
+    render->flushQueued.store(false);
+    if (s.inFlight == render && !render->done.load()) FlushLocked(s, render, false);
 }
 
 void StartNextLocked(Stream& s) {
@@ -523,6 +596,13 @@ void StartNextLocked(Stream& s) {
                 dispatch_async(queue, ^{
                     @autoreleasepool {
                         if (std::shared_ptr<Stream> live = stream.lock()) OnRenderEnded(*live, render);
+                    }
+                });
+            } else if (!render->done.load() && render->WantsFlush() && !render->flushQueued.exchange(true)) {
+                dispatch_async(queue, ^{
+                    @autoreleasepool {
+                        if (std::shared_ptr<Stream> live = stream.lock()) OnRenderProgress(*live, render);
+                        else render->flushQueued.store(false);
                     }
                 });
             }
