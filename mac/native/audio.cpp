@@ -5,6 +5,7 @@
 #include "cai.h"
 #include "miniaudio.h"
 #include <atomic>
+#include <chrono>
 #include <limits>
 #include <memory>
 #include <mutex>
@@ -12,11 +13,12 @@
 
 namespace {
 
-// After a rebuild fails, how many more times to try, and how many frames
-// (Update calls) to wait between tries: about two seconds at 60 frames per
-// second, enough for an output device to finish appearing.
+// After a rebuild fails, how many more times to try, and how long to wait
+// between tries: enough for an output device to finish appearing. Measured
+// on a clock, not in Update calls, whose rate follows the frame rate.
 constexpr int kRebuildAttempts = 5;
-constexpr int kRebuildRetryFrames = 120;
+constexpr std::chrono::seconds kRebuildRetryDelay{2};
+using RetryClock = std::chrono::steady_clock;
 
 ma_attenuation_model ToMa(audio::AttenuationModel m) {
     switch (m) {
@@ -103,7 +105,8 @@ struct Engine {
     std::atomic_bool rebuilding{false};
     std::atomic_bool rebuildRequested{false};
     int rebuildFailures = 0;
-    int retryCountdown = 0;        // frames until the next rebuild attempt, 0 when none is pending
+    bool retryPending = false;     // a rebuild attempt is due at retryAt
+    RetryClock::time_point retryAt{};
     ma_device_state lastLoggedState = ma_device_state_uninitialized;
     audio::Handle nextHandle = 1;
     std::unordered_map<audio::Handle, std::unique_ptr<Sound>> sounds;
@@ -166,7 +169,7 @@ void GiveUp() {
     if (g_engine.engineReady) { ma_engine_uninit(&g_engine.engine); g_engine.engineReady = false; }
     ma_resource_manager_uninit(&g_engine.resourceManager);
     g_engine.initialized = false;
-    g_engine.retryCountdown = 0;
+    g_engine.retryPending = false;
 }
 
 // A device problem that a rebuild may fix: schedule one, or give up after
@@ -178,7 +181,8 @@ void ScheduleRebuild(const char* why) {
         return;
     }
     Log("audio: %s; rebuilding the engine in about two seconds (attempt %d of %d)", why, g_engine.rebuildFailures + 1, kRebuildAttempts);
-    g_engine.retryCountdown = kRebuildRetryFrames;
+    g_engine.retryAt = RetryClock::now() + kRebuildRetryDelay;
+    g_engine.retryPending = true;
 }
 
 // Tear the engine down and build it again with the same sounds. The sounds
@@ -280,7 +284,7 @@ void SetListenerVelocity(float x, float y, float z) { Guard lock(g_mutex); g_eng
 void Update() {
     Guard lock(g_mutex);
     if (!g_engine.initialized) return;
-    if (g_engine.retryCountdown > 0 && --g_engine.retryCountdown == 0) g_engine.rebuildRequested = true;
+    if (g_engine.retryPending && RetryClock::now() >= g_engine.retryAt) { g_engine.retryPending = false; g_engine.rebuildRequested = true; }
     if (g_engine.rebuildRequested.exchange(false)) { RebuildEngine(); return; }
     if (!g_engine.engineReady) return;
     ma_device* dev = ma_engine_get_device(&g_engine.engine);
