@@ -1025,7 +1025,7 @@ function S.HandleChar(root, char, maxDepth)
 
     if repeatSearch then
         -- Keep the buffer at the single letter; just refresh the timeout.
-        mgr.LastTypeTime = Automation.GetTime()
+        mgr.LastTypeTime = GetMonotonicTime()
         mgr:TouchSearchBufferTimer()
     else
         mgr:AppendSearchChar(char)

@@ -67,7 +67,7 @@ end
 
 local function TouchTimer(state)
     if state ~= nil then
-        state.lastEventTime = Automation.GetTime()
+        state.lastEventTime = GetMonotonicTime()
     end
 end
 
@@ -852,7 +852,7 @@ function RevealAnnouncements_CAI.UpdateVisibility()
         return
     end
 
-    local now = Automation.GetTime()
+    local now = GetMonotonicTime()
     if (now - state.lastEventTime) > ANNOUNCE_DELAY_SECONDS then
         LogMessage("Reveal announcements debounce elapsed for player "
             .. tostring(localPlayerID) .. ", turnActive=" .. tostring(IsLocalPlayerTurnActive(localPlayerID)))
