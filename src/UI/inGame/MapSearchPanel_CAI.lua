@@ -15,7 +15,9 @@ local HexCoordUtils = CAIHexCoordUtils
 local CAICursor = ExposedMembers.CAICursor
 
 local CAI_PLOTS_PER_FRAME = 35
-local DEBOUNCE_FRAMES = 20
+-- The pause after the last keystroke before the search runs. Measured in
+-- seconds, not frames: the frame rate differs between machines and the Mac.
+local DEBOUNCE_SECONDS = 0.33
 local PROGRESS_THRESHOLD = 0.10
 
 local CAI_PANEL_ID = "CAIMapSearch_Panel"
@@ -23,7 +25,7 @@ local CAI_CONTAINER_ID = "CAIMapSearch_Container"
 
 local m_container = nil ---@type ContainerWidget|nil
 local m_searchPanel = nil ---@type SearchPanelWidget|nil
-local m_debounceCounter = -1
+local m_debounceDeadline = nil
 local m_pendingQuery = ""
 local m_lastSpokenPercent = -1
 local m_isSearching = false
@@ -38,17 +40,16 @@ local m_historySeeded = false
 --#region Debounce
 
 local function StopDebounce()
-    m_debounceCounter = -1
+    m_debounceDeadline = nil
 end
 
 local function OnDebounceUpdate()
-    if m_debounceCounter < 0 then
+    if m_debounceDeadline == nil then
         ContextPtr:ClearUpdate()
         return
     end
-    m_debounceCounter = m_debounceCounter - 1
-    if m_debounceCounter <= 0 then
-        m_debounceCounter = -1
+    if GetMonotonicTime() >= m_debounceDeadline then
+        m_debounceDeadline = nil
         if m_pendingQuery == "" then
             OnClearSearchButton()
             if m_searchPanel then
@@ -89,7 +90,7 @@ local function StartDebounce(query)
         end
         return
     end
-    m_debounceCounter = DEBOUNCE_FRAMES
+    m_debounceDeadline = GetMonotonicTime() + DEBOUNCE_SECONDS
     ContextPtr:SetUpdate(OnDebounceUpdate)
 end
 
