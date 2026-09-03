@@ -101,7 +101,7 @@ int l_IsCommandDown(lua_State* L) { hks::PushBoolean(L, PlatformIsCommandDown())
 int l_GetLatestVersion(lua_State* L) { hks::PushString(L, PlatformLatestVersion()); return 1; }
 // Marked (composing) text from an input method is not visible to the key
 // monitor, so composition is never reported. Revisit if CJK input doubles characters.
-int l_IsImeComposing(lua_State* L) { hks::PushBoolean(L, false); return 1; }
+int l_IsImeComposing(lua_State* L) { hks::PushBoolean(L, KeyboardIsComposing()); return 1; }
 // On Mac the handler function is not stored: Lua polls PollCharInput() each frame instead.
 int l_RegisterGlobalCharInputHandler(lua_State* L) { CharInputEnable(true); return 0; }
 int l_UnregisterGlobalCharInputHandler(lua_State* L) { CharInputEnable(false); return 0; }

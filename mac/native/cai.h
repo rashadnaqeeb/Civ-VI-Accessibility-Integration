@@ -49,6 +49,8 @@ void KeyboardInstall();
 // Whether typed characters are queued for CharInputPoll.
 void CharInputEnable(bool enable);
 bool CharInputPoll(std::string& out);
+// True while an input method holds uncommitted (marked) text in the game window.
+bool KeyboardIsComposing();
 
 // ---- dyld interposing -------------------------------------------------------
 // One entry in the __DATA,__interpose section: dyld rebinds every cross-image
