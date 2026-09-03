@@ -6,6 +6,7 @@
 #include "audio.h"
 #include "SimpleIni.h"
 #include "speechRouter.h"
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -173,6 +174,14 @@ int l_SetListenerVelocity(lua_State* L) { audio::SetListenerVelocity(FloatArg(L,
 int l_SetMasterVolume(lua_State* L) { EnsureAudio(); audio::SetMasterVolume(FloatArg(L, 1)); return 0; }
 int l_GetMasterVolume(lua_State* L) { hks::PushNumber(L, audio::GetMasterVolume()); return 1; }
 int l_AudioUpdate(lua_State* L) { EnsureAudio(); audio::Update(); return 0; }
+// Seconds from a monotonic clock, as a double. Automation.GetTime() on the
+// Aspyr build advances only once per second, so every CAI timer that needs
+// sub-second resolution reads this through GetMonotonicTime() in caiUtils.lua.
+int l_GetTime(lua_State* L) {
+    using namespace std::chrono;
+    hks::PushNumber(L, duration<double>(steady_clock::now().time_since_epoch()).count());
+    return 1;
+}
 
 struct Entry { const char* name; lua_CFunction fn; };
 const Entry kApi[] = {
@@ -205,6 +214,7 @@ const Entry kApi[] = {
     { "SetListenerPosition", l_SetListenerPosition }, { "SetListenerDirection", l_SetListenerDirection }, { "SetListenerUp", l_SetListenerUp }, { "SetListenerVelocity", l_SetListenerVelocity },
     { "SetMasterVolume", l_SetMasterVolume }, { "GetMasterVolume", l_GetMasterVolume },
     { "AudioUpdate", l_AudioUpdate },
+    { "GetTime", l_GetTime },
 };
 }
 

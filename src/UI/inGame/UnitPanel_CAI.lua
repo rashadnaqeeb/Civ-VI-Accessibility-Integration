@@ -189,7 +189,7 @@ local function GetUnitActionIntentKey(kind, playerID, unitID, actionHash)
 end
 
 local function ClearExpiredUnitActionIntents()
-    local now = Automation.GetTime()
+    local now = GetMonotonicTime()
     for key, intent in pairs(pendingUnitActionIntents) do
         if now - intent.StartTime > UNIT_ACTION_INTENT_TIMEOUT then
             pendingUnitActionIntents[key] = nil
@@ -212,7 +212,7 @@ local function RecordUnitActionIntent(kind, actionHash, config, action, callback
         Key = key,
         PlayerID = localPlayerID,
         UnitID = unit:GetID(),
-        StartTime = Automation.GetTime(),
+        StartTime = GetMonotonicTime(),
         Result = result,
     }
     pendingUnitActionIntents[key] = intent

@@ -34,6 +34,12 @@ function CAI.PollCharInput() end
 ---@return boolean
 function CAI.IsCommandDown() end
 
+---Mac build only. Seconds from a monotonic clock; the Windows DLL has no
+---such function because Automation.GetTime() is fine there. Read it through
+---GetMonotonicTime() in caiUtils.lua.
+---@return number
+function CAI.GetTime() end
+
 ---Installed system voices, one per line as id, name and language separated by
 ---tabs. Mac only; absent on Windows.
 ---@return string
@@ -282,6 +288,12 @@ function TrackCommandKey(input) end
 ---else the tracked VK_LWIN state). Always false on Windows.
 ---@return boolean
 function IsCommandDown() end
+
+---Seconds from a monotonic clock for CAI timers and delays: CAI.GetTime()
+---on the Mac build, Automation.GetTime() on Windows. Only compare values
+---from this function with each other.
+---@return number
+function GetMonotonicTime() end
 
 ---Speak each line in turn. When interrupt is true only the first line cuts
 ---ongoing speech; the rest queue so per-widget lines don't trample each other.

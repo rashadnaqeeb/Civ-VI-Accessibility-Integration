@@ -663,7 +663,7 @@ end
 
 --#region Input
 ---Resets the timer for app regained focus. Used to prevent input from leaking when focus lands on the window, causing you to accidentally escape screens or trigger input actions
-function UIScreenManager:TouchAppRegainedFocusTimer() self.AppRegainedFocusTime = Automation.GetTime() end
+function UIScreenManager:TouchAppRegainedFocusTimer() self.AppRegainedFocusTime = GetMonotonicTime() end
 
 function UIScreenManager:CancelEnterKeyOwnership()
     self.EnterKeyIsDown = false
@@ -745,7 +745,7 @@ function UIScreenManager:HandleInput(input)
             end
         end
     end
-    if self.AppRegainedFocusTime > 0 and (Automation.GetTime() - self.AppRegainedFocusTime) <= 0.25 then return true end
+    if self.AppRegainedFocusTime > 0 and (GetMonotonicTime() - self.AppRegainedFocusTime) <= 0.25 then return true end
     if CAI and CAI.IsImeComposing() then return true end
     local node = self:GetFocusedWidget()
 
@@ -970,7 +970,7 @@ end
 
 function UIScreenManager:ExpireSearchBufferIfNeeded()
     local expireTime = self.SearchBufferExpireTime
-    if expireTime ~= nil and Automation.GetTime() >= expireTime then
+    if expireTime ~= nil and GetMonotonicTime() >= expireTime then
         self.SearchBuffer = ""
         self.LastTypeTime = nil
         self.SearchBufferExpireTime = nil
@@ -993,7 +993,7 @@ function UIScreenManager:TouchSearchBufferTimer()
         return
     end
 
-    self.SearchBufferExpireTime = Automation.GetTime() + timeout
+    self.SearchBufferExpireTime = GetMonotonicTime() + timeout
 end
 
 ---@param target UIWidget
@@ -1058,7 +1058,7 @@ function UIScreenManager:RemoveSearchChar()
     end
 
     self.SearchBuffer = nextBuffer
-    self.LastTypeTime = Automation.GetTime()
+    self.LastTypeTime = GetMonotonicTime()
     self:TouchSearchBufferTimer()
     return self.SearchBuffer
 end
@@ -1073,7 +1073,7 @@ function UIScreenManager:AppendSearchChar(c)
     if (self.SearchBuffer or "") == "" then
         self.SearchAnchor = self:GetFocusedWidget()
     end
-    local now = Automation.GetTime()
+    local now = GetMonotonicTime()
     self.LastTypeTime = now
     -- ASCII-only fold: string.lower is locale-sensitive on bytes >= 0x80 and
     -- would corrupt multi-byte UTF-8 characters (e.g. CJK), which have no case.

@@ -1902,7 +1902,7 @@ tutorialMgr:RegisterItem({
 })
 
 local m_animGateUntil = 0
-local function IsAnimating() return Automation.GetTime() < m_animGateUntil end
+local function IsAnimating() return GetMonotonicTime() < m_animGateUntil end
 
 local EXCLUDED_MAIN_CALLBACKS = {
     --[OnTutorial] = true,
@@ -2198,7 +2198,7 @@ BuildMenu = WrapFunc(BuildMenu, function(orig, menuOptions)
     orig(menuOptions)
     if not m_currentOptions or #m_currentOptions == 0 then return end
 
-    m_animGateUntil = Automation.GetTime() + 0.3
+    m_animGateUntil = GetMonotonicTime() + 0.3
 
     RemoveSubmenuWidget()
     BuildMainPanelOnce()
