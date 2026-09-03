@@ -58,6 +58,18 @@ function IsCommandDown()
 	return m_commandKeyDown
 end
 
+---Seconds from a monotonic clock, for CAI timers and delays. On Windows this
+---is Automation.GetTime(). On the Mac build Automation.GetTime() advances
+---only once per second, so a 0.1 s delay waited up to a full second; the
+---dylib supplies a real clock as CAI.GetTime(). The two clocks have
+---different origins, so only compare values from this function with each
+---other, never with a stored Automation.GetTime() value.
+---@return number
+function GetMonotonicTime()
+	if CAI ~= nil and CAI.GetTime ~= nil then return CAI.GetTime() end
+	return Automation.GetTime()
+end
+
 include("textProcessing")
 include("CAISettings")
 include("CAI_logging")

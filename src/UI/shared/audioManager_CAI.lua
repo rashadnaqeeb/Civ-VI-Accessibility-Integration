@@ -20,7 +20,7 @@ local AUDIO_DEFINITION_QUERY = [[
 ]]
 
 local function GetTime()
-    return Automation.GetTime()
+    return GetMonotonicTime()
 end
 
 local function NormalizePath(path)
