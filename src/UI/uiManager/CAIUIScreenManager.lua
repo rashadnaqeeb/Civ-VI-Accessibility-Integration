@@ -715,8 +715,13 @@ function UIScreenManager:HandleInput(input)
     -- and by the key-up the key-down has been handled and its character
     -- queued, so the order matches Windows (key-down, then character).
     -- Runs before the suspended check so stale characters are consumed, not
-    -- replayed on resume. No-op on Windows.
-    if msg == KeyEvents.KeyUp then self:PollCharInput() end
+    -- replayed on resume. No-op on Windows. The audio manager is serviced
+    -- here for the same reason: under such a popup its device recovery and
+    -- delayed sounds would otherwise wait until the popup closes.
+    if msg == KeyEvents.KeyUp then
+        self:PollCharInput()
+        self:UpdateAudioManager()
+    end
 
     -- Suspended: the manager is inert. Only global bindings (the mod-toggle)
     -- are evaluated; everything else returns false so vanilla input proceeds.
