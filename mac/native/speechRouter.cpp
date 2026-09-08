@@ -12,9 +12,17 @@ namespace {
 enum class Handler { None, Prism, SystemVoice };
 
 // prism has no feature bit that says "this backend is a screen reader", so
-// the auto handler recognizes VoiceOver by its registry name, which starts
-// with this prefix ("VoiceOver (macOS)" in prism 0.18).
-constexpr const char* kScreenReaderBackendPrefix = "VoiceOver";
+// the auto handler recognizes one by its registry name: prism's own VoiceOver
+// backend ("VoiceOver" in prism 0.18) and the Macaw plugin's backend ("Macaw").
+constexpr const char* kScreenReaderBackendPrefixes[] = { "VoiceOver", "Macaw" };
+// The prism plugin Macaw links inside its own support folder at every launch
+// (see docs/speech-api.md in the Macaw repository), relative to $HOME. Its
+// backend is named "Macaw" with priority 110, above prism's screen readers,
+// and reports itself supported only while the reader is running, so the best
+// backend is Macaw whenever Macaw runs and unchanged otherwise. When Macaw is
+// not installed the path does not exist and the library add fails, which
+// prism guarantees leaves the builder unchanged.
+constexpr const char* kMacawPluginPath = "/Library/Application Support/Macaw/prism/libMacawPrismPlugin.dylib";
 // Setting keys in the [Speech] section (settings_CAI.sql).
 constexpr const char* kKeyHandler = "SpeechHandler";
 constexpr const char* kKeyPrismBackend = "PrismBackend";
@@ -28,6 +36,7 @@ std::mutex g_mutex;
 Handler g_handler = Handler::None;
 bool g_activationFailed = false; // the last Activate() started nothing; cleared by a setting change
 PrismContext* g_ctx = nullptr;
+PrismRegistry* g_registry = nullptr; // prism's built-in backends plus the Macaw plugin; lives as long as g_ctx
 PrismBackend* g_backend = nullptr;
 uint64_t g_features = 0;
 bool g_systemInit = false;       // cai_speech_init done (the stream stays alive once started)
@@ -46,7 +55,10 @@ std::string Setting(const char* key, const char* def) { return CaiConfigGet(kSpe
 
 bool IsScreenReaderBackend(PrismBackend* backend) {
     const char* name = prism_backend_name(backend);
-    return name && strncmp(name, kScreenReaderBackendPrefix, strlen(kScreenReaderBackendPrefix)) == 0;
+    if (!name) return false;
+    for (const char* prefix : kScreenReaderBackendPrefixes)
+        if (strncmp(name, prefix, strlen(prefix)) == 0) return true;
+    return false;
 }
 
 // ---- system voice ------------------------------------------------------------
@@ -81,11 +93,32 @@ void ApplySystemVoiceSettings() {
 }
 
 // ---- prism -------------------------------------------------------------------
+// The registry prism starts from is its built-in backends; the builder adds
+// the Macaw plugin on top when it is installed. The registry is frozen here,
+// so Macaw installed after this point is seen at the next game launch.
+PrismRegistry* BuildPrismRegistry() {
+    PrismRegistryBuilder* builder = prism_registry_builder_new();
+    if (!builder) return nullptr;
+    const char* home = getenv("HOME");
+    if (home && *home) {
+        std::string path = std::string(home) + kMacawPluginPath;
+        size_t added = 0;
+        PrismError err = prism_registry_builder_add_library(builder, path.c_str(), -1, &added);
+        if (err == PRISM_OK) Log("prism: loaded the Macaw plugin (%zu backend%s) from %s", added, added == 1 ? "" : "s", path.c_str());
+        else LogDebug("prism: no Macaw plugin at %s (%s)", path.c_str(), prism_error_string(err));
+    }
+    PrismRegistry* registry = prism_registry_freeze(builder);
+    prism_registry_builder_free(builder);
+    return registry;
+}
+
 bool EnsurePrismContext() {
     if (g_ctx) return true;
     static bool logSet = false;
     if (!logSet) { logSet = true; prism_set_log_handler(PrismLogHandler{ PrismLog, nullptr }); }
+    if (!g_registry) g_registry = BuildPrismRegistry();
     PrismConfig cfg = prism_config_init();
+    cfg.registry = g_registry;   // null falls back to prism's default registry
     g_ctx = prism_init(&cfg);
     Log("prism %s init -> %s", prism_version_string(), g_ctx ? "ok" : "FAILED");
     return g_ctx != nullptr;
@@ -185,14 +218,30 @@ void SettingChanged(const char* key) {
 
 bool IsActive() { std::lock_guard<std::mutex> lock(g_mutex); return g_handler != Handler::None; }
 
+PrismError PrismSay(const char* text, bool interrupt) {
+    // output() speaks and brailles at once; a backend without it reports
+    // NOT_IMPLEMENTED, and only then is plain speak() the substitute.
+    PrismError err = PRISM_ERROR_NOT_IMPLEMENTED;
+    if (g_features & PRISM_BACKEND_SUPPORTS_OUTPUT) err = prism_backend_output(g_backend, text, interrupt);
+    if (err == PRISM_ERROR_NOT_IMPLEMENTED) err = prism_backend_speak(g_backend, text, interrupt);
+    return err;
+}
+
 void Say(const char* text, bool interrupt) {
     std::lock_guard<std::mutex> lock(g_mutex);
     if (g_handler == Handler::Prism && g_backend) {
-        // output() speaks and brailles at once; a backend without it reports
-        // NOT_IMPLEMENTED, and only then is plain speak() the substitute.
-        PrismError err = PRISM_ERROR_NOT_IMPLEMENTED;
-        if (g_features & PRISM_BACKEND_SUPPORTS_OUTPUT) err = prism_backend_output(g_backend, text, interrupt);
-        if (err == PRISM_ERROR_NOT_IMPLEMENTED) err = prism_backend_speak(g_backend, text, interrupt);
+        PrismError err = PrismSay(text, interrupt);
+        if (err == PRISM_ERROR_BACKEND_NOT_AVAILABLE) {
+            // The screen reader behind the backend is gone (Macaw quit; its
+            // plugin reconnects by itself only while the reader runs). Pick
+            // the handler again from the settings, which now resolves to the
+            // next best backend or the system voice, and speak the line there.
+            Log("prism: backend %s is no longer available; re-selecting the speech handler", ActiveNameLocked().c_str());
+            ActivateLocked();
+            if (g_handler == Handler::Prism && g_backend) err = PrismSay(text, interrupt);
+            else if (g_handler == Handler::SystemVoice) { cai_speech_say(text, interrupt); return; }
+            else return;
+        }
         if (err != PRISM_OK) Log("prism speak failed: %s", prism_error_string(err));
         return;
     }
