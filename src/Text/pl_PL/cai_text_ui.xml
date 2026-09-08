@@ -6536,7 +6536,7 @@
       <Text>Wyjście mowy</Text>
     </Replace>
     <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_TOOLTIP" Language="pl_PL">
-      <Text>Kto mówi. Auto używa VoiceOver przez Prism, gdy VoiceOver jest uruchomiony, w przeciwnym razie głosu systemowego. Prism łączy się z VoiceOver lub syntezą Apple. Głos systemowy odtwarza bezpośrednio głos Treści mówionej.</Text>
+      <Text>Kto mówi. Auto używa przez Prism uruchomionego czytnika ekranu, Macaw lub VoiceOver, w przeciwnym razie głosu systemowego. Prism łączy się z Macaw, VoiceOver lub syntezą Apple. Głos systemowy odtwarza bezpośrednio głos Treści mówionej.</Text>
     </Replace>
     <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_AUTO" Language="pl_PL">
       <Text>Auto</Text>

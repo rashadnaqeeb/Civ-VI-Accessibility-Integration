@@ -6577,7 +6577,7 @@
       <Text>Speech output</Text>
     </Row>
     <Row Tag="LOC_CAI_SETTING_SPEECH_HANDLER_TOOLTIP" Language="en_US">
-      <Text>Who speaks. Auto uses VoiceOver through Prism when VoiceOver is running, otherwise the system voice. Prism talks to VoiceOver or Apple speech. System voice plays the Spoken Content voice directly.</Text>
+      <Text>Who speaks. Auto uses a running screen reader through Prism, Macaw or VoiceOver, otherwise the system voice. Prism talks to Macaw, VoiceOver or Apple speech. System voice plays the Spoken Content voice directly.</Text>
     </Row>
     <Row Tag="LOC_CAI_SETTING_SPEECH_HANDLER_AUTO" Language="en_US">
       <Text>Auto</Text>

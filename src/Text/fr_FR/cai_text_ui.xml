@@ -6523,7 +6523,7 @@
       <Text>Sortie vocale</Text>
     </Replace>
     <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_TOOLTIP" Language="fr_FR">
-      <Text>Qui parle. Auto utilise VoiceOver via Prism quand VoiceOver est actif, sinon la voix du système. Prism s’adresse à VoiceOver ou à la synthèse Apple. Voix du système lit directement la voix de Contenu énoncé.</Text>
+      <Text>Qui parle. Auto utilise via Prism le lecteur d’écran en cours d’exécution, Macaw ou VoiceOver, sinon la voix du système. Prism s’adresse à Macaw, à VoiceOver ou à la synthèse Apple. Voix du système lit directement la voix de Contenu énoncé.</Text>
     </Replace>
     <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_AUTO" Language="fr_FR">
       <Text>Auto</Text>

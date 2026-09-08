@@ -6533,7 +6533,7 @@
       <Text>Saída de fala</Text>
     </Replace>
     <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_TOOLTIP" Language="pt_BR">
-      <Text>Quem fala. Automático usa o VoiceOver por meio do Prism quando o VoiceOver está ativo; caso contrário, a voz do sistema. Prism fala com o VoiceOver ou com a síntese da Apple. Voz do sistema reproduz diretamente a voz do Conteúdo Falado.</Text>
+      <Text>Quem fala. Automático usa por meio do Prism o leitor de tela em execução, Macaw ou VoiceOver; caso contrário, a voz do sistema. Prism fala com o Macaw, com o VoiceOver ou com a síntese da Apple. Voz do sistema reproduz diretamente a voz do Conteúdo Falado.</Text>
     </Replace>
     <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_AUTO" Language="pt_BR">
       <Text>Automático</Text>

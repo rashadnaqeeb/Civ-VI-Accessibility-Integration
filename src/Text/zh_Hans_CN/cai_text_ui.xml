@@ -6538,7 +6538,7 @@
       <Text>语音输出</Text>
     </Replace>
     <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_TOOLTIP" Language="zh_Hans_CN">
-      <Text>由谁朗读。自动：VoiceOver 运行时通过 Prism 使用 VoiceOver，否则使用系统声音。Prism：连接 VoiceOver 或 Apple 语音合成。系统声音：直接播放“朗读内容”的声音。</Text>
+      <Text>由谁朗读。自动：有屏幕阅读器（Macaw 或 VoiceOver）运行时通过 Prism 使用它，否则使用系统声音。Prism：连接 Macaw、VoiceOver 或 Apple 语音合成。系统声音：直接播放“朗读内容”的声音。</Text>
     </Replace>
     <Replace Tag="LOC_CAI_SETTING_SPEECH_HANDLER_AUTO" Language="zh_Hans_CN">
       <Text>自动</Text>
