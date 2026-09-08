@@ -38,7 +38,8 @@
 - The world scanner has a new World Builder category, shown only while the World Builder is active. It has two subcategories: Starting positions lists each placed start, named by its assignment type and target, such as "Player: Rome", "Leader: Trajan", "Civilization: Rome", "Random Player", or "Random City-State", and grouped by that type; and Ownership lists owned tiles merged into zones per owner, like the political lens.
 - Added a UI setting to focus the active tab instead of page contents when first entering a tab control. Note that some screens may still override this
 - macOS support on Apple Silicon. The mod now runs on the Mac version of the game from Steam, with speech, sounds, text input, and the same interface as on Windows. See the README's macOS section for the requirements and the installer.
-- On the Mac, the accessibility settings (`F12`) have a Speech section to choose the speech output (system voice, Prism, or VoiceOver through Prism), the voice, the rate, and the volume. Pressing any key stops the current speech, as a screen reader does.
+- On the Mac, the accessibility settings (`F12`) have a Speech section to choose the speech output (system voice, Prism, or a screen reader through Prism), the voice, the rate, and the volume. Pressing any key stops the current speech, as a screen reader does.
+- On the Mac, the Macaw screen reader is supported: with the speech output set to Auto or Prism, the mod speaks through Macaw whenever it is running, and Macaw is offered as a Prism backend.
 
 ### Changed
 
