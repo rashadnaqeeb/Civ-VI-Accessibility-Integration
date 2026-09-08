@@ -130,6 +130,10 @@ function Utils.IsPlotRevealed(context, plot)
         return false
     end
 
+    -- World Builder Set Visibility tool: fog by the selected player's reveal.
+    local isGated, revealed = GetWorldBuilderRevealGate(plot)
+    if isGated then return revealed end
+
     local visibility = Utils.GetVisibility(context)
     if visibility == nil then
         return true
@@ -145,6 +149,10 @@ function Utils.IsPlotVisible(context, plot)
     if plot == nil then
         return false
     end
+
+    -- World Builder Set Visibility tool: a revealed plot is perceivable.
+    local isGated, revealed = GetWorldBuilderRevealGate(plot)
+    if isGated then return revealed end
 
     local visibility = Utils.GetVisibility(context)
     if visibility == nil then
@@ -163,6 +171,10 @@ function Utils.CanKnowPlayer(context, playerID)
     end
 
     local localPlayerID = Utils.GetLocalPlayerID(context)
+    -- The see-all observer has met everyone: every player is knowable.
+    if localPlayerID == PlayerTypes.OBSERVER then
+        return true
+    end
     if context == nil or localPlayerID == nil or localPlayerID == -1 then
         return true
     end
@@ -184,6 +196,15 @@ function Utils.GetTeamStance(context, playerID)
     end
 
     local localPlayerID = Utils.GetLocalPlayerID(context)
+    -- The observer owns nothing and has no diplomacy: players are neutral, but
+    -- barbarians are hostile to all by nature and stay enemy.
+    if localPlayerID == PlayerTypes.OBSERVER then
+        local player = Players[playerID]
+        if player ~= nil and player.IsBarbarian and player:IsBarbarian() then
+            return "enemy"
+        end
+        return "neutral"
+    end
     if context == nil or localPlayerID == nil or localPlayerID == -1 then
         return "neutral"
     end

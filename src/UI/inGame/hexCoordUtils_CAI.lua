@@ -281,6 +281,13 @@ function HexCoordUtils.joinStepSegments(segments)
 end
 
 function HexCoordUtils.coordinateString(x, y)
+    -- World Builder has no local player / capital to anchor relative coordinates
+    -- to, and the editor works in the map's absolute grid, so speak the game's
+    -- actual plot coordinates there instead of a capital-relative offset.
+    if WorldBuilder ~= nil and WorldBuilder.IsActive() then
+        return tostring(x) .. ", " .. tostring(y)
+    end
+
     local capitalX, capitalY = ActiveOriginalCapital()
     if capitalX == nil or capitalY == nil then
         return ""
@@ -355,7 +362,14 @@ function HexCoordUtils.plotsInRange(centerX, centerY, radius)
             local col, row = CubeToOffset(ccx + dx, nil, ccz + dz)
             local plot = Map.GetPlot(col, row)
             if plot ~= nil then
-                local isRevealed = visibility == nil or visibility:IsRevealed(plot)
+                -- World Builder Set Visibility tool overrides the observer view.
+                local isGated, wbRevealed = GetWorldBuilderRevealGate(plot)
+                local isRevealed
+                if isGated then
+                    isRevealed = wbRevealed
+                else
+                    isRevealed = visibility == nil or visibility:IsRevealed(plot)
+                end
                 if isRevealed then
                     plots[#plots + 1] = plot
                 else

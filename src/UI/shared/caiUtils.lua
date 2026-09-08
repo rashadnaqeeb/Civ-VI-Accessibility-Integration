@@ -105,6 +105,73 @@ function SaveCAISuspendedFlag(suspended)
     CAI.SetConfigValue(CAI_SUSPEND_SECTION, CAI_SUSPEND_KEY, suspended and "true" or "false")
 end
 
+-- ===========================================================================
+-- Viewing player / observer
+-- CAI keys per-player state (cursor, message buffer, scanner, reveal) and
+-- ownership on the "viewing" player. Normally that is the local player; when
+-- there is none -- World Builder, observer/spectator, autoplay -- it falls back
+-- to the observer. PlayerTypes.OBSERVER (1000) is a positive sentinel that owns
+-- nothing and sees everything, so it is safe as a state key (Players[1000] is
+-- nil) but callers must treat it as a neutral, see-all viewer, never a real
+-- player. Use IsObserverView() to collapse ownership to neutral in that mode.
+-- ===========================================================================
+
+---The player id CAI should treat as the current viewer: the local player when
+---one exists, otherwise the observer (which may be a real player id or the
+---PlayerTypes.OBSERVER sentinel). nil only when neither exists.
+---@return integer|nil
+function GetViewingPlayerID()
+    local playerID = Game.GetLocalPlayer()
+    if playerID ~= nil and playerID >= 0 then
+        return playerID
+    end
+
+    local observerID = Game.GetLocalObserver()
+    if observerID ~= nil and observerID ~= PlayerTypes.NONE then
+        return observerID
+    end
+
+    return nil
+end
+
+---True when CAI is viewing as a generic observer that owns nothing: there is no
+---local player and the observer is the see-all PlayerTypes.OBSERVER. In this
+---mode ownership collapses to neutral and every unit/city reads as neutral.
+---@return boolean
+function IsObserverView()
+    local playerID = Game.GetLocalPlayer()
+    if playerID ~= nil and playerID >= 0 then
+        return false
+    end
+
+    return Game.GetLocalObserver() == PlayerTypes.OBSERVER
+end
+
+---World Builder reveal gate. While the Set Visibility tool is armed on a player,
+---CAI surfaces (cursor, surveyor, world scanner, plot tooltip) fog plots by that
+---player's revealed state instead of the see-all observer view, so placing units
+---and revealing/hiding tiles change what can be read according to the game's
+---sight rules. Returns (false) when the gate is inactive -- not in the World
+---Builder, the Set Visibility tool not armed, or the manager unavailable -- and
+---callers keep their normal observer/local-player path. When active, returns
+---(true, revealed) for the plot. plot may be a plot object or a plot index.
+---@param plot table|integer|nil
+---@return boolean isGated, boolean revealed
+function GetWorldBuilderRevealGate(plot)
+    if plot == nil then return false, false end
+    if WorldBuilder == nil or not WorldBuilder.IsActive() then return false, false end
+    local visMgr = ExposedMembers.CAI_WBVisManager
+    local info = ExposedMembers.CAIInfo
+    if visMgr == nil or visMgr.IsRevealed == nil
+        or info == nil or info.GetWorldBuilderVisibilityPlayer == nil then
+        return false, false
+    end
+    local player = info.GetWorldBuilderVisibilityPlayer()
+    if player == nil then return false, false end
+    local plotIndex = type(plot) == "number" and plot or plot:GetIndex()
+    return true, visMgr.IsRevealed(player, plotIndex) == true
+end
+
 ---Utility wrapper for 'CAI.output'
 ---@param text string -- the text to speak
 ---@param interrupt? boolean -- whether to interrupt any currently speaking text. False by default

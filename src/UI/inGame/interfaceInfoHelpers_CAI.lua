@@ -637,6 +637,9 @@ local function FormatArrivalTurn(turn)
     if turn <= 1 then
         return Locale.Lookup("LOC_CAI_MOVEMENT_THIS_TURN")
     end
+    if turn == 2 then
+        return Locale.Lookup("LOC_CAI_MOVEMENT_NEXT_TURN")
+    end
     return Locale.Lookup("LOC_CAI_MOVEMENT_TURNS", turn - 1)
 end
 
@@ -1143,12 +1146,91 @@ local function BuildTargetValidityInterfaceInfo(plot)
     return lines
 end
 
+-- World Builder placement preview. Every WB tool shares one interface mode
+-- (WB_SELECT_PLOT), so a single helper covers them all: it asks the placement
+-- context (via CAIInfo, since PlacementValid lives there) whether the current
+-- setup would place at this plot, and speaks Valid/Invalid plus the affected
+-- footprint and, for brush tools, how many brush tiles are valid. This is the
+-- accessible replacement for vanilla's green/red mouse-over highlight.
+local function BuildWorldBuilderInterfaceInfo(plot)
+    if plot == nil then return nil end
+
+    local api = ExposedMembers.CAIInfo
+    if api == nil then return nil end
+
+    -- Locked mode: the readout is anchored to the locked tile's footprint, not
+    -- the cursor's. As the cursor roams the locked footprint each tile reports
+    -- its own validity; off the footprint there is no validity readout; on the
+    -- locked tile itself the readout is prefixed as the locked placement tile and
+    -- carries the whole-footprint valid count. The locked plot is published on the
+    -- shared CAIInfo table since this helper runs in the PlotToolTip context, not
+    -- the WorldInput context that owns the mark.
+    local lockedPlot = nil
+    if api.GetWorldBuilderMarkedPlot ~= nil then
+        lockedPlot = api.GetWorldBuilderMarkedPlot()
+    end
+    if lockedPlot ~= nil then
+        if api.GetWorldBuilderBrushTargets == nil then return nil end
+        local targets = api.GetWorldBuilderBrushTargets(lockedPlot)
+        if targets == nil then return nil end
+
+        local cursorIdx = plot:GetIndex()
+        local entry, validCount = nil, 0
+        for _, t in ipairs(targets) do
+            if t.Valid then validCount = validCount + 1 end
+            if t.PlotIndex == cursorIdx then entry = t end
+        end
+        -- Cursor outside the locked footprint: say nothing about validity.
+        if entry == nil then return nil end
+
+        local lines = {}
+        if cursorIdx == lockedPlot then
+            table.insert(lines, Locale.Lookup("LOC_CAI_WB_LOCKED_TILE"))
+        end
+        table.insert(lines, entry.Valid
+            and Locale.Lookup("LOC_CAI_PLOT_INTERFACE_VALID")
+            or Locale.Lookup("LOC_CAI_PLOT_INTERFACE_INVALID"))
+        -- Whole-footprint valid count, only at the locked tile and only for a
+        -- multi-tile footprint (brush tools).
+        if cursorIdx == lockedPlot and #targets > 1 then
+            table.insert(lines, Locale.Lookup("LOC_CAI_WB_BRUSH_VALID", validCount, #targets))
+        end
+        return lines
+    end
+
+    -- Unlocked: cursor-perspective placement preview.
+    if api.GetWorldBuilderPlacementValidity == nil then return nil end
+    local v = api.GetWorldBuilderPlacementValidity(plot:GetIndex())
+    if v == nil then return nil end
+
+    local lines = {}
+    if v.valid then
+        table.insert(lines, Locale.Lookup("LOC_CAI_PLOT_INTERFACE_VALID"))
+        if v.footprint ~= nil and v.footprint > 1 then
+            table.insert(lines, Locale.Lookup("LOC_CAI_WB_FOOTPRINT_TILES", v.footprint))
+        end
+    else
+        table.insert(lines, Locale.Lookup("LOC_CAI_PLOT_INTERFACE_INVALID"))
+    end
+
+    if v.brushTotal ~= nil and v.brushTotal > 1 then
+        table.insert(lines, Locale.Lookup("LOC_CAI_WB_BRUSH_VALID", v.brushValid or 0, v.brushTotal))
+    end
+
+    return lines
+end
+
 local function BuildCityManagementInterfaceInfo(plot)
     if plot == nil or CAICityManagementInterface == nil or CAICityManagementInterface.BuildSpeechTextOrInvalid == nil then
         return nil
     end
 
     return { CAICityManagementInterface.BuildSpeechTextOrInvalid(plot) }
+end
+
+-- All World Builder tools run in the single WB_SELECT_PLOT interface mode.
+if InterfaceModeTypes.WB_SELECT_PLOT ~= nil then
+    InterfaceInfoHelpers[InterfaceModeTypes.WB_SELECT_PLOT] = BuildWorldBuilderInterfaceInfo
 end
 
 InterfaceInfoHelpers[InterfaceModeTypes.MOVE_TO] = BuildMoveToInterfaceInfo
@@ -1205,6 +1287,10 @@ end
 
 local function IsActiveInterfacePlotRevealed(plot)
     if plot == nil then return false end
+
+    -- World Builder Set Visibility tool: fog by the selected player's reveal.
+    local isGated, revealed = GetWorldBuilderRevealGate(plot)
+    if isGated then return revealed end
 
     local observer = Game.GetLocalObserver()
     if observer == PlayerTypes.OBSERVER then

@@ -5,6 +5,10 @@
 - macOS support on Apple Silicon. The mod now runs on the Mac version of the game from Steam, with speech, sounds, text input, and the same interface as on Windows. See the README's macOS section for the requirements and the installer.
 - On the Mac, the accessibility settings (`F12`) have a Speech section to choose the speech output (system voice, Prism, or a screen reader through Prism), the voice, the rate, and the volume. Pressing any key stops the current speech, as a screen reader does.
 - On the Mac, the Macaw screen reader is supported: with the speech output set to Auto or Prism, the mod speaks through Macaw whenever it is running, and Macaw is offered as a Prism backend.
+- In the Climate Screen's Event History, a disaster that caused damage or changed firtility can now be expanded to hear the specifics. Under it you will find the improvements, districts, and buildings that were pillaged or destroyed, features and resources that were removed, units that were killed or damaged, the tiles whose yields changed and by how much, and the cities that lost population. Each entry can be selected to move the map cursor to that tile. Storms report what they did on each turn as they move.
+- Added full accessibility to the world builder. Includes mod tutorials for screens and general usage
+- The world scanner has a new World Builder category, shown only while the World Builder is active. It has two subcategories: Starting positions lists each placed start, named by its assignment type and target, such as "Player: Rome", "Leader: Trajan", "Civilization: Rome", "Random Player", or "Random City-State", and grouped by that type; and Ownership lists owned tiles merged into zones per owner, like the political lens.
+- The world scanner's Geography category has a new Rivers and cliffs subcategory: revealed river-edge tiles and cliff-edge tiles, each merged into connected zones with their tile counts, kept in separate Rivers and Cliffs groups.
 
 ### Changed
 
@@ -12,19 +16,20 @@
 - The great work viewer's painting and sculpture descriptions have been rewritten from the real artworks. Each one is now three or four plain sentences that name the medium and tradition, then the scene, then the look, and no longer repeats the title or artist.
 - The leader descriptions read with `F2` in the diplomacy and deal screens and from the leader picker have been rewritten from the full diplomacy scene instead of the small portrait. Each now opens with the leader's full name and titles, then describes the setting, the person, their dress and regalia, any props, the background, and the light in one detailed paragraph, naming the real place the scene shows where it is known.
 - The great work viewer now also describes the shared writing and music backgrounds, the artifact images, the relic images, the Heroes and Legends symbols and epics, the Secret Societies relics, and the Monopolies and Corporations products.
+- The Production panel's treeview is now split into more categories. On the Production tab, districts and buildings each have their own category instead of sharing one, and a Needs Repair category at the top gathers every pillaged district and building.
+- When a unit cannot reach its destination this turn, the movement announcement now tells you whether it moved as far as it could and stopped short, or could not move at all and simply has its journey queued. A unit that did not move now says "Movement queued" with the turns until arrival, instead of "Stopped short".
+- The movement preview says "Next turn" when a unit would arrive on the following turn, instead of "1 turn".
 
 ### Fixed
 
 - Fixed factual errors in the great work descriptions, such as Andrei Rublev's icons being called Byzantine and details invented from thumbnails.
-
-### Fixed
-
 - Type-to-find text now clears after the search timeout in the main menu and setup screens as well, not only in-game.
 - On the Mac, cursor sounds that follow another sound, such as the terrain sound after a river crossing or the forest and road sounds after the terrain, no longer arrive up to a second late. The same fix makes the type-to-find timeout and other short delays as precise as on Windows.
 - On the Mac, long text such as a civilopedia page starts speaking as soon as its first second is ready instead of after the whole text has been prepared.
 - On the Mac, typing with a Japanese, Chinese or Korean input source no longer puts the raw keystrokes of a composition into type-to-find or a text field.
 - On the Mac, sounds recover from a headphone or output device change while game setup or a picker is open, on the next key press, instead of only after leaving it.
 - The map search waits the same third of a second after typing on every machine, instead of a number of frames that depended on the frame rate.
+- After moving a unit onto a tribal village, a discovered natural wonder, or into or out of the water, the movement announcement now reports the unit's actual remaining movement instead of its movement from before the move.
 
 ## [1.4.1] - 2026-08-30
 

@@ -1905,9 +1905,8 @@ local m_animGateUntil = 0
 local function IsAnimating() return GetMonotonicTime() < m_animGateUntil end
 
 local EXCLUDED_MAIN_CALLBACKS = {
-    --[OnTutorial] = true,
     [OnBenchmark] = true,
-    [OnWorldBuilder] = true,
+    --[OnWorldBuilder] = true,
 }
 local EXCLUDED_SUB_CALLBACKS = {
 }
