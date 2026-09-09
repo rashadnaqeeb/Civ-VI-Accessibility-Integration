@@ -28,3 +28,5 @@ __pycache__/
 
 # macOS release packages built by mac/dev/package.sh
 release/
+# Wonder movie clips downloaded by scripts/Extract-WonderVideos.py (large, regenerable)
+wonder-videos/

@@ -9,6 +9,7 @@
 - Added full accessibility to the world builder. Includes mod tutorials for screens and general usage
 - The world scanner has a new World Builder category, shown only while the World Builder is active. It has two subcategories: Starting positions lists each placed start, named by its assignment type and target, such as "Player: Rome", "Leader: Trajan", "Civilization: Rome", "Random Player", or "Random City-State", and grouped by that type; and Ownership lists owned tiles merged into zones per owner, like the political lens.
 - The world scanner's Geography category has a new Rivers and cliffs subcategory: revealed river-edge tiles and cliff-edge tiles, each merged into connected zones with their tile counts, kept in separate Rivers and Cliffs groups.
+- The wonder built and natural wonder discovered popups now read a description of the wonder movie when you press `F2`: what the movie shows as the wonder is built or the landscape comes into view, with its real features named. Every world wonder and natural wonder in the game has one, in all the mod's languages.
 
 ### Changed
 
