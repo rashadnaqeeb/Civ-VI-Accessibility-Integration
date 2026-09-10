@@ -21,6 +21,7 @@
 - The Production panel's treeview is now split into more categories. On the Production tab, districts and buildings each have their own category instead of sharing one, and a Needs Repair category at the top gathers every pillaged district and building.
 - When a unit cannot reach its destination this turn, the movement announcement now tells you whether it moved as far as it could and stopped short, or could not move at all and simply has its journey queued. A unit that did not move now says "Movement queued" with the turns until arrival, instead of "Stopped short".
 - The movement preview says "Next turn" when a unit would arrive on the following turn, instead of "1 turn".
+- Every cursor move the mod makes, whether from the arrow keys, the map search, the world scanner, map pins, notifications, or unit and city selection, now snaps the camera to the cursor at once instead of panning there. Stepping right after a jump no longer leaves the camera trailing behind the cursor for a few tiles.
 
 ### Fixed
 
