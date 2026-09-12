@@ -51,6 +51,7 @@ include("CAIUITutorialCatalog")
 ---@field CurrentPath UIWidget[]
 ---@field EnterKeyIsDown boolean Whether this manager has observed an unmatched Enter key-down.
 ---@field EnterKeyDownOwner? UIWidget Focused leaf that received the current Enter key-down.
+---@field CharInputBarrierTime? number Mac: GetMonotonicTime() of the last root push or edit start; queued characters typed before it are dropped.
 ---@field FocusRestoreKeyOverride? string Temporary logical target used while a widget action synchronously rebuilds its subtree.
 ---@field TypeToFindTarget? UIWidget Container that owns the persistent type-to-find session.
 ---@field SearchAnchor? UIWidget Focused widget captured when the current type-to-find query began; used to bias results toward the current tree depth.
@@ -88,6 +89,7 @@ function UIScreenManager:New()
     mgr.FocusRestoreKeyOverride = nil
     mgr.EnterKeyIsDown = false
     mgr.EnterKeyDownOwner = nil
+    mgr.CharInputBarrierTime = nil
     mgr._suspendClosers = {}
     mgr._suspendCloserSeq = 0
     return mgr
@@ -217,6 +219,7 @@ function UIScreenManager:Push(w, opts)
     LogMessage("UI manager Push " .. self:DescribeWidget(w)
         .. ", stackSize=" .. tostring(#self.Stack)
         .. ", newTop=" .. self:DescribeWidget(newTop))
+    self:MarkCharInputBarrier()
 
     -- Ignore updating focus if ops.ignoreFocus is true. This is used by screens that want to push a widget but not expect you to interact with it currently. Normally priority would take care of this, but some screens push on async events and so priority is not effective.
     if opts.ignoreFocus then
@@ -789,11 +792,27 @@ function UIScreenManager:HandleInput(input)
     return false
 end
 
+---Mac: record the moment a screen or text field takes focus. A queued
+---character whose key went down before this moment was typed before the
+---screen or field existed, most often the letter of the hotkey that opened it
+---(M places a map tack and focuses its name field), and is dropped instead of
+---being typed there. On Windows the character arrives at the focus that held
+---it when typed, so there is nothing to record; the native queue and its
+---timestamps do not exist there.
+function UIScreenManager:MarkCharInputBarrier()
+    if CAI == nil or CAI.PollCharInput == nil then return end
+    self.CharInputBarrierTime = GetMonotonicTime()
+end
+
 ---@param char string
+---@param time? number Mac: GetMonotonicTime() reading at the character's key-down.
 ---@return boolean
-function UIScreenManager:HandleCharInput(char)
+function UIScreenManager:HandleCharInput(char, time)
     -- Suspended: char input is a no-op so vanilla text entry proceeds.
     if not self:IsCAIActive() then return false end
+    if time ~= nil and self.CharInputBarrierTime ~= nil and time < self.CharInputBarrierTime then
+        return true
+    end
     local node = self:GetFocusedWidget()
     while node do
         if not node:IsHidden() and node.OnCharInput then
@@ -1207,9 +1226,9 @@ local CHAR_INPUT_PER_FRAME = 64
 function UIScreenManager:PollCharInput()
     if CAI == nil or CAI.PollCharInput == nil then return end
     for _ = 1, CHAR_INPUT_PER_FRAME do
-        local char = CAI.PollCharInput()
+        local char, time = CAI.PollCharInput()
         if char == nil then break end
-        self:HandleCharInput(char)
+        self:HandleCharInput(char, time)
     end
 end
 

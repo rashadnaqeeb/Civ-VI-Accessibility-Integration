@@ -234,8 +234,11 @@ function EditBoxWidget:SetEditMode(mode) self._editMode = mode or EditModes.Norm
 ---and SetAlwaysEdit so the normal focus announcement isn't doubled up.
 ---@param silent? boolean
 function EditBoxWidget:BeginEdit(silent)
-    if not silent and self.Manager then
-        self.Manager:ClearSearchBuffer(false)
+    if self.Manager then
+        if not silent then self.Manager:ClearSearchBuffer(false) end
+        -- Mac: a character typed before editing began belongs to whatever
+        -- was focused then, not to this field.
+        self.Manager:MarkCharInputBarrier()
     end
     local text = self._value or ""
     self._buffer = text

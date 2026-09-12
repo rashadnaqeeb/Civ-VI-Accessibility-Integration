@@ -48,8 +48,11 @@ std::string PlatformLatestVersion();
 void KeyboardInstall();
 // Whether typed characters are queued for CharInputPoll.
 void CharInputEnable(bool enable);
-bool CharInputPoll(std::string& out);
-// True while an input method holds uncommitted (marked) text in the game window.
+// Next typed character and the steady-clock time (seconds, the clock of
+// CAI.GetTime()) at which its key went down.
+bool CharInputPoll(std::string& out, double& time);
+// True while an input method (not a keyboard layout's dead key) holds
+// uncommitted (marked) text in the game window.
 bool KeyboardIsComposing();
 
 // ---- dyld interposing -------------------------------------------------------
