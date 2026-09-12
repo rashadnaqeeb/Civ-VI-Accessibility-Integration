@@ -96,7 +96,7 @@ target_link_options(cai PRIVATE
 target_link_libraries(cai PRIVATE
   miniaudio
   "-framework AppKit" "-framework Foundation" "-framework AVFoundation"
-  "-framework CoreGraphics" "-framework IOKit"
+  "-framework CoreGraphics" "-framework IOKit" "-framework Carbon"
 )
 
 # --- speechtest: stand-alone driver for the system-voice stream --------------

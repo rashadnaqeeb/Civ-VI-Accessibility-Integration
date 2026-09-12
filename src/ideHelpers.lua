@@ -23,10 +23,12 @@ CAI = {}
 ---@return string|nil
 function CAI.GetConfigValue(section, key, defaultValue) end
 
----Next character typed into the game window, queued by the native layer, or
----nil when the queue is empty. Mac only; on Windows the native layer calls the
----registered char input handler directly and this function is absent.
----@return string|nil
+---Next character typed into the game window, queued by the native layer, with
+---the CAI.GetTime() reading at its key-down, or nil when the queue is empty.
+---Mac only; on Windows the native layer calls the registered char input
+---handler directly and this function is absent.
+---@return string|nil char
+---@return number|nil time
 function CAI.PollCharInput() end
 
 ---Live Command key state. Mac only; absent on Windows. Prefer the global
@@ -1630,8 +1632,14 @@ function UIScreenManager:CancelEnterKeyOwnershipOutsidePath(path) end
 function UIScreenManager:HandleInput(input) end
 
 ---@param char string
+---@param time? number Mac: GetMonotonicTime() reading at the character's key-down; nil on Windows.
 ---@return boolean
-function UIScreenManager:HandleCharInput(char) end
+function UIScreenManager:HandleCharInput(char, time) end
+
+---Mac: record the moment a screen or text field took focus; queued characters
+---typed before it are dropped by HandleCharInput. No-op on Windows. Called by
+---Push and by EditBox:BeginEdit.
+function UIScreenManager:MarkCharInputBarrier() end
 
 ---@return boolean -- true when the accessibility mod is active (not suspended)
 function UIScreenManager:IsCAIActive() end

@@ -99,17 +99,20 @@ int l_GetClipboardText(lua_State* L) { hks::PushString(L, PlatformClipboardText(
 int l_IsGameWindowFocused(lua_State* L) { hks::PushBoolean(L, PlatformIsGameWindowFocused()); return 1; }
 int l_IsCommandDown(lua_State* L) { hks::PushBoolean(L, PlatformIsCommandDown()); return 1; }
 int l_GetLatestVersion(lua_State* L) { hks::PushString(L, PlatformLatestVersion()); return 1; }
-// Marked (composing) text from an input method is not visible to the key
-// monitor, so composition is never reported. Revisit if CJK input doubles characters.
+// True while an input method holds marked text in the game window, sampled by
+// the key monitor around each key (keyboard.mm).
 int l_IsImeComposing(lua_State* L) { hks::PushBoolean(L, KeyboardIsComposing()); return 1; }
 // On Mac the handler function is not stored: Lua polls PollCharInput() each frame instead.
 int l_RegisterGlobalCharInputHandler(lua_State* L) { CharInputEnable(true); return 0; }
 int l_UnregisterGlobalCharInputHandler(lua_State* L) { CharInputEnable(false); return 0; }
+// Returns the character and the CAI.GetTime() reading at its key-down, or nil.
 int l_PollCharInput(lua_State* L) {
     std::string s;
-    if (!CharInputPoll(s)) { hks::PushNil(L); return 1; }
+    double time = 0;
+    if (!CharInputPoll(s, time)) { hks::PushNil(L); return 1; }
     hks::PushString(L, s);
-    return 1;
+    hks::PushNumber(L, time);
+    return 2;
 }
 
 // --- Audio (audio.h, miniaudio) ---------------------------------------------

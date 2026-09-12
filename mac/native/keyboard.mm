@@ -7,9 +7,11 @@
 // CAI.IsImeComposing(), the Mac side of the WM_IME_STARTCOMPOSITION and
 // WM_IME_ENDCOMPOSITION hooks of the Windows DLL.
 #import <AppKit/AppKit.h>
+#import <Carbon/Carbon.h>
 #include "cai.h"
 #include "speechRouter.h"
 #include <atomic>
+#include <chrono>
 #include <deque>
 #include <mutex>
 #include <string>
@@ -20,22 +22,55 @@ namespace {
 // oldest character is dropped past this many.
 constexpr size_t kMaxQueuedCharacters = 256;
 
+// A typed character and the time its key went down, in seconds of the same
+// steady clock CAI.GetTime() reads. Lua compares the time against the moment
+// a screen or text field took focus: the key that opened a screen is handled
+// by the game thread after the monitor saw it, so a character stamped before
+// that moment was typed before the screen existed and must not land in it.
+struct TypedCharacter {
+    std::string text;
+    double time;
+};
+
+double MonotonicSeconds() {
+    using namespace std::chrono;
+    return duration<double>(steady_clock::now().time_since_epoch()).count();
+}
+
 std::mutex g_mutex;
-std::deque<std::string> g_queue;
+std::deque<TypedCharacter> g_queue;
 id g_monitor = nil;                            // main thread only
 NSEventModifierFlags g_modifiers = 0;          // main thread only: the modifiers held at the last event
 std::atomic<bool> g_installRequested{false};
 std::atomic<bool> g_charInput{false};          // written by the game thread, read by the monitor on the main thread
 std::atomic<bool> g_composing{false};          // sampled on the main thread around each key, read by the game thread
 
+// Main thread. True when the selected keyboard input source is an input
+// method (Japanese, Chinese, Korean), the only kind that composes text. A
+// plain keyboard layout also sets marked text, for a dead key: on the US
+// layout Option+E arms an acute accent and the game's view holds it as marked
+// text until the next key. Treating that as a composition swallowed the key
+// events of every dead-key shortcut (Option+E, U, I and N are mod bindings)
+// and of the key that followed.
+bool InputSourceIsInputMethod() {
+    TISInputSourceRef source = TISCopyCurrentKeyboardInputSource();
+    if (source == nullptr) return false;
+    CFStringRef type = (CFStringRef)TISGetInputSourceProperty(source, kTISPropertyInputSourceType);
+    bool inputMethod = type != nullptr && !CFEqual(type, kTISTypeKeyboardLayout);
+    CFRelease(source);
+    return inputMethod;
+}
+
 // Main thread. True while the first responder holds marked text, the
 // uncommitted part of an input method composition. The game's view adopts
 // NSTextInputClient (its binary references the protocol), so an input method
 // composes through it; a responder without a text input context never
-// composes and reads as false.
+// composes and reads as false. Marked text under a keyboard layout is a
+// pending dead key, not a composition.
 bool IsComposing() {
     id client = [NSTextInputContext currentInputContext].client;
-    return client != nil && [client respondsToSelector:@selector(hasMarkedText)] && [client hasMarkedText];
+    if (client == nil || ![client respondsToSelector:@selector(hasMarkedText)] || ![client hasMarkedText]) return false;
+    return InputSourceIsInputMethod();
 }
 
 // A key went down. Stop what the mod is voicing, as a screen reader stops
@@ -103,12 +138,13 @@ void OnKeyDown(NSEvent* e) {
         return;
     }
     std::string text = g_charInput.load(std::memory_order_relaxed) ? TypedText(e) : std::string();
+    double time = MonotonicSeconds();
     dispatch_async(dispatch_get_main_queue(), ^{
         bool composing = IsComposing();
         g_composing.store(composing);
         if (composing || text.empty()) return;
         std::lock_guard<std::mutex> lock(g_mutex);
-        g_queue.push_back(text);
+        g_queue.push_back({text, time});
         if (g_queue.size() > kMaxQueuedCharacters) g_queue.pop_front();
     });
 }
@@ -150,10 +186,11 @@ bool KeyboardIsComposing() {
     return g_composing.load();
 }
 
-bool CharInputPoll(std::string& out) {
+bool CharInputPoll(std::string& out, double& time) {
     std::lock_guard<std::mutex> lock(g_mutex);
     if (g_queue.empty()) return false;
-    out = std::move(g_queue.front());
+    out = std::move(g_queue.front().text);
+    time = g_queue.front().time;
     g_queue.pop_front();
     return true;
 }

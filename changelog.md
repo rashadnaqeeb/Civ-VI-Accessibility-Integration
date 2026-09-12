@@ -71,6 +71,8 @@
 
 ### Fixed
 
+- On the Mac, shortcuts on Option+E, Option+U, Option+I and Option+N (quick move northeast, upgrade, make trade route, repair) now work. macOS uses these keys to type accents, and the mod mistook the pending accent for an input method composition and ignored the key.
+- On the Mac, a letter hotkey that opens a screen with a text field no longer types that letter into the field, such as `M` placing a map tack and typing "m" into its name.
 - Fixed factual errors in the great work descriptions, such as Andrei Rublev's icons being called Byzantine and details invented from thumbnails.
 - After opening a specific Civilopedia article, Shift+Tab from its body now properly lands on that article in the sections tree, instead of focusing the first section.
 - Fixed an issue with units vanishing while in combat animations
