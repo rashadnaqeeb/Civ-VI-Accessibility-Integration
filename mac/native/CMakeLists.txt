@@ -1,7 +1,14 @@
 # CAI native layer for the macOS (Aspyr, Steam) build of Civilization VI.
 # Produces libcai.dylib, injected into Civ6_Exe_Child by steam_launch.sh
-# through DYLD_INSERT_LIBRARIES. Apple Silicon only. Design and internals:
+# through DYLD_INSERT_LIBRARIES, and steam_launch, the native launcher Steam
+# starts in front of that script. Apple Silicon only. Design and internals:
 # mac/README.md. Build from the repo: mac/dev/build.sh.
+#
+# The default preset sets CMAKE_OSX_SYSROOT to "macosx", the SDK of the
+# toolchain xcode-select points at. Without it, with both Xcode and the
+# Command Line Tools installed, clang can pick the other one's SDK, and an SDK
+# newer than the linker fails every link ("tapi error: malformed file ...
+# unknown architecture", seen with Xcode 26.6 and the macOS 27 SDK).
 cmake_minimum_required(VERSION 3.24)
 
 # Forced on purpose: the dylib is loaded into an arm64 process on macOS 13 or
@@ -98,6 +105,13 @@ target_link_libraries(cai PRIVATE
   "-framework AppKit" "-framework Foundation" "-framework AVFoundation"
   "-framework CoreGraphics" "-framework IOKit" "-framework Carbon"
 )
+
+# --- steam_launch: native launcher for the Steam launch option ---------------
+# arm64-only on purpose (CMAKE_OSX_ARCHITECTURES above): Steam spawns the
+# launch command preferring x86_64, and only a binary without that slice runs
+# natively without Rosetta. See steam_launch.c.
+add_executable(steam_launch steam_launch.c)
+target_compile_options(steam_launch PRIVATE -Wall -Wextra)
 
 # --- speechtest: stand-alone driver for the system-voice stream --------------
 # Not part of the default build. Lists voices, speaks a few lines, and

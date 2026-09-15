@@ -2,8 +2,8 @@
 # Build the macOS release asset:
 #   release/Civ-VI-Accessibility-Integration-<version>-macos.zip
 # containing the mod folder (src without ideHelpers.lua and todo.md, as the
-# Windows release packages it), libcai.dylib, steam_launch.sh, install.sh,
-# uninstall.sh and the third-party license texts.
+# Windows release packages it), libcai.dylib, the steam_launch native launcher,
+# steam_launch.sh, install.sh, uninstall.sh and the third-party license texts.
 #
 # The mod folder is taken from the committed tree (git archive HEAD), never
 # from the working copy, so nothing untracked can end up in the package. The
@@ -14,9 +14,10 @@
 #
 # Signing (optional, for a public release):
 #   CAI_SIGN_IDENTITY="Developer ID Application: Name (TEAMID)"  signs the dylib
-#   CAI_NOTARY_PROFILE=<notarytool keychain profile>              notarizes it
-# Without them the dylib keeps its ad-hoc signature, which works because the
-# game disables library validation; install.sh clears the quarantine flag.
+#                                                                 and the launcher
+#   CAI_NOTARY_PROFILE=<notarytool keychain profile>              notarizes them
+# Without them both keep their ad-hoc signature, which works because the game
+# disables library validation; install.sh clears the quarantine flag.
 set -e
 DEV="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$DEV/../.." && pwd)"
@@ -45,27 +46,29 @@ echo "configuring (the first run downloads about 17 MB of dependencies)"
 cmake --preset default
 cmake --build --preset default
 DYLIB="$NATIVE/build/libcai.dylib"
+LAUNCHER="$NATIVE/build/steam_launch"
 
 # --- Sign and notarize (optional) ---------------------------------------------
 if [ -n "$CAI_SIGN_IDENTITY" ]; then
-  codesign --force --options runtime --timestamp -s "$CAI_SIGN_IDENTITY" "$DYLIB"
+  codesign --force --options runtime --timestamp -s "$CAI_SIGN_IDENTITY" "$DYLIB" "$LAUNCHER"
   echo "signed with $CAI_SIGN_IDENTITY"
   if [ -n "$CAI_NOTARY_PROFILE" ]; then
-    NZIP="$NATIVE/build/libcai-notarize.zip"
-    rm -f "$NZIP"; ditto -c -k "$DYLIB" "$NZIP"
+    NZIP="$NATIVE/build/cai-notarize.zip"
+    rm -f "$NZIP"; ditto -c -k "$DYLIB" "$LAUNCHER" "$NZIP"
     xcrun notarytool submit "$NZIP" --keychain-profile "$CAI_NOTARY_PROFILE" --wait
     echo "notarized (a dylib cannot be stapled; the ticket is checked online)"
   fi
 fi
-codesign --verify --verbose=1 "$DYLIB"
+codesign --verify --verbose=1 "$DYLIB" "$LAUNCHER"
 
 # --- Stage --------------------------------------------------------------------
 rm -rf "$STAGE"; mkdir -p "$STAGE/licenses" "$STAGE/$MOD_NAME"
 git -C "$ROOT" archive HEAD src | tar -x -C "$STAGE/$MOD_NAME" --strip-components 1
 rm -f "$STAGE/$MOD_NAME/ideHelpers.lua" "$STAGE/$MOD_NAME/todo.md"
 cp "$DYLIB" "$STAGE/libcai.dylib"
+cp "$LAUNCHER" "$STAGE/steam_launch"
 cp "$ROOT/mac/steam_launch.sh" "$ROOT/mac/install.sh" "$ROOT/mac/uninstall.sh" "$STAGE/"
-chmod +x "$STAGE"/*.sh
+chmod +x "$STAGE/steam_launch" "$STAGE"/*.sh
 
 # Third-party notices: prism ships its NOTICE and LICENSES folder; miniaudio and
 # SimpleIni carry their license text inside the header.

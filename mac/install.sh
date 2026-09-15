@@ -4,11 +4,12 @@
 # Run this from the unzipped release folder, which holds:
 #   CivVi-Accessibility-Integration/   the mod
 #   libcai.dylib                       the native layer (speech, sounds, config)
-#   steam_launch.sh                    the Steam launch wrapper that loads it
+#   steam_launch                       the native launcher Steam starts
+#   steam_launch.sh                    the launch wrapper that loads the dylib
 #
 # What it does:
 #   1. Copies the mod into the game's Mods folder.
-#   2. Copies the dylib and the wrapper into
+#   2. Copies the dylib, the launcher and the wrapper into
 #      ~/Library/Application Support/Sid Meier's Civilization VI/CAI/
 #      (they must live outside Documents, Desktop and Downloads: Steam has no
 #      privacy grant for those folders and a wrapper there never starts).
@@ -16,7 +17,8 @@
 #      launch option in Steam is the one manual step.
 #
 # Requirements: Apple Silicon, macOS 13 or later, Civilization VI 1.4.6 from
-# Steam. Options: --no-clipboard (do not touch the clipboard), --help.
+# Steam. Rosetta is not needed. Options: --no-clipboard (do not touch the
+# clipboard), --help.
 set -e
 # --help prints the comment block above, up to this line.
 
@@ -45,7 +47,7 @@ fail() { echo "error: $*" >&2; exit 1; }
 [ "$(uname -m)" = "arm64" ] || fail "this Mac is not Apple Silicon; the accessibility mod's native layer is arm64 only"
 MAJOR="$(sw_vers -productVersion | cut -d. -f1)"
 [ "$MAJOR" -ge 13 ] 2>/dev/null || fail "macOS 13 or later is required (this is $(sw_vers -productVersion))"
-for f in "$MOD_NAME/CivViAccess.modinfo" libcai.dylib steam_launch.sh; do
+for f in "$MOD_NAME/CivViAccess.modinfo" libcai.dylib steam_launch steam_launch.sh; do
   [ -e "$HERE/$f" ] || fail "missing $f next to this script; run install.sh from the unzipped release folder"
 done
 if [ -d "$GAME_APP" ]; then
@@ -71,15 +73,16 @@ fi
 # --- Native layer -------------------------------------------------------------
 mkdir -p "$CAI_DIR"
 cp "$HERE/libcai.dylib" "$CAI_DIR/libcai.dylib"
+cp "$HERE/steam_launch" "$CAI_DIR/steam_launch"
 cp "$HERE/steam_launch.sh" "$CAI_DIR/steam_launch.sh"
-chmod +x "$CAI_DIR/steam_launch.sh"
-# Downloaded files carry the quarantine flag; clear it so the wrapper and the
-# dylib are not blocked.
-xattr -d com.apple.quarantine "$CAI_DIR/libcai.dylib" "$CAI_DIR/steam_launch.sh" 2>/dev/null || true
+chmod +x "$CAI_DIR/steam_launch" "$CAI_DIR/steam_launch.sh"
+# Downloaded files carry the quarantine flag; clear it so the launcher, the
+# wrapper and the dylib are not blocked.
+xattr -d com.apple.quarantine "$CAI_DIR/libcai.dylib" "$CAI_DIR/steam_launch" "$CAI_DIR/steam_launch.sh" 2>/dev/null || true
 echo "native layer installed to $CAI_DIR"
 
 # --- Steam launch option ------------------------------------------------------
-LAUNCH_OPTION="\"$CAI_DIR/steam_launch.sh\" %command%"
+LAUNCH_OPTION="\"$CAI_DIR/steam_launch\" %command%"
 if [ "$USE_CLIPBOARD" = 1 ] && command -v pbcopy >/dev/null 2>&1; then
   printf '%s' "$LAUNCH_OPTION" | pbcopy && CLIP=1 || CLIP=0
 else
