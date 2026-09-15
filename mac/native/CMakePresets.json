@@ -6,7 +6,10 @@
       "displayName": "Release with debug info (Ninja)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_OSX_SYSROOT": "macosx"
+      }
     }
   ],
   "buildPresets": [

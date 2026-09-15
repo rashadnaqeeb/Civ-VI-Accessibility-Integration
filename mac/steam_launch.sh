@@ -1,18 +1,26 @@
 #!/bin/sh
-# Steam launch wrapper for CAI on macOS. Set the game's Steam launch options to
-#   "/full/path/to/steam_launch.sh" %command%
-# Steam then runs this script with the game's own command line as arguments
-# and the Steam environment (SteamAppId and friends) already set.
+# Steam launch wrapper for CAI on macOS. The game's Steam launch option is
+#   "/full/path/to/steam_launch" %command%
+# where steam_launch is the native launcher built from native/steam_launch.c
+# and installed next to this script; all it does is run this script through
+# /bin/sh. Steam runs the launcher with the game's own command line as
+# arguments and the Steam environment (SteamAppId and friends) already set.
 #
+# - Why the launcher and not this script as the launch option: Steam spawns
+#   the launch command preferring x86_64 over arm64, so a "#!/bin/sh" script
+#   is run by the x86_64 slice of /bin/sh and needs Rosetta, which macOS 27
+#   drops on upgrade and a new Mac never has. The arm64-only launcher takes
+#   Steam's arm64 fallback and runs natively. With Rosetta installed this
+#   script also works as the launch option on its own.
 # - On macOS %command% is the app bundle (Civ6.app). The bundle's own
 #   executable is Aspyr's launcher (Civ6_Exe), which spawns the real game
 #   (Civ6_Exe_Child). Started from a wrapper the launcher idles in its event
 #   loop and never spawns the game, so the script starts Civ6_Exe_Child
 #   directly, as the development launch does.
-# - Steam is an Intel binary running under Rosetta, and children of a
-#   translated process run translated too, so without help the universal
-#   game would start as x86_64. `arch -arm64` starts it natively; the CAI
-#   dylib is arm64 only and Apple Silicon is the only supported hardware.
+# - The game is universal. `arch -arm64` starts its native slice whether this
+#   shell is native (started by the launcher) or translated (script used
+#   directly under Rosetta); the CAI dylib is arm64 only and Apple Silicon is
+#   the only supported hardware.
 # - Steam on macOS does not accept a plain VAR=value prefix before %command%,
 #   hence the script. It loads the CAI dylib next to this script into the game.
 #
