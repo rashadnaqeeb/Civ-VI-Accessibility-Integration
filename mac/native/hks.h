@@ -32,6 +32,8 @@ inline HksObject Globals(lua_State* L) { return *(HksObject*)((char*)L + OFF_GLO
 inline uint64_t Tag(const HksObject& o) { return o.t & 0xf; }
 inline const char* StringData(const HksObject& o) { return (const char*)o.v + OFF_TSTRING_DATA; }
 inline size_t StringLen(const HksObject& o) { return *(const uint64_t*)(o.v + OFF_TSTRING_LEN) & TSTRING_LEN_MASK; }
+inline double NumberValue(const HksObject& o) { double d; memcpy(&d, &o.v, 8); return d; }
+inline HksObject Number(double d) { HksObject o{ TNUMBER, 0 }; memcpy(&o.v, &d, 8); return o; }
 
 // Resolve the game exports with dlsym. False, with a log line naming the
 // symbol, if one is missing; nothing else in this namespace may be called then.
@@ -66,6 +68,8 @@ bool IsNoneOrNil(lua_State* L, int idx);
 
 HksObject GetField(lua_State* L, HksObject table, const char* key);
 void SetField(lua_State* L, HksObject table, const char* key, HksObject value);
+HksObject RawGetI(lua_State* L, HksObject table, int n);   // table[n] without metamethods; nil if absent
+void SetIndex(lua_State* L, HksObject table, int n, HksObject value);
 void SetMetatable(lua_State* L, HksObject table, HksObject mt);
 std::string ToString(lua_State* L, HksObject o);  // tostring-like for logging
 }

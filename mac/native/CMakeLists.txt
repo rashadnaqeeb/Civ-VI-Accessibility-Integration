@@ -71,7 +71,8 @@ target_link_libraries(miniaudio PUBLIC
 
 # --- libcai.dylib ------------------------------------------------------------
 # The game's Lua exports are resolved with dlsym at run time (hks.cpp), so the
-# dylib links against nothing but the system frameworks and prism, and the
+# dylib links against nothing but the system frameworks, the system SQLite
+# (database.cpp) and prism, and the
 # linker checks every remaining reference. ld64 ad-hoc signs arm64 output on
 # its own; the release script re-signs with a Developer ID.
 add_library(cai SHARED
@@ -80,6 +81,7 @@ add_library(cai SHARED
   inject.cpp
   hks.cpp
   luaapi.cpp
+  database.cpp
   speechRouter.cpp
   audio.cpp
   speech.mm
@@ -104,6 +106,7 @@ target_link_libraries(cai PRIVATE
   miniaudio
   "-framework AppKit" "-framework Foundation" "-framework AVFoundation"
   "-framework CoreGraphics" "-framework IOKit" "-framework Carbon"
+  sqlite3
 )
 
 # --- steam_launch: native launcher for the Steam launch option ---------------

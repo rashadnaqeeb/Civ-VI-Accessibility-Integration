@@ -7,7 +7,8 @@ namespace {
 // The game exports, resolved by name at startup. The mangled names encode the
 // parameter types but not the return type; the return types below were
 // checked against the binary: luaL_checkinteger converts with fcvtzs w0, d0
-// and returns an int, hks_obj_getfield returns its HksObject in x0 and x1.
+// and returns an int, hks_obj_getfield returns its HksObject in x0 and x1,
+// and hks_obj_rawgeti returns nothing and stores the value through x3.
 struct GameApi {
     void (*pushnamedcclosure)(lua_State*, lua_CFunction, int, const char*, int);
     void (*createtable)(lua_State*, int, int);
@@ -15,6 +16,7 @@ struct GameApi {
     double (*checknumber)(lua_State*, int);
     int (*checkinteger)(lua_State*, int);
     HksObject (*getfield)(lua_State*, HksObject, HksObject);
+    void (*rawgeti)(lua_State*, const HksObject*, int, HksObject*);
     void (*settable)(lua_State*, const HksObject*, const HksObject*, const HksObject*);
     void (*setmetatable)(lua_State*, const HksObject*, const HksObject*);
     const char* (*tolstring)(lua_State*, HksObject*, unsigned long*);
@@ -50,6 +52,7 @@ bool Bind() {
         && Resolve(g_api.checknumber, "_Z16luaL_checknumberP9lua_Statei")
         && Resolve(g_api.checkinteger, "_Z17luaL_checkintegerP9lua_Statei")
         && Resolve(g_api.getfield, "_Z16hks_obj_getfieldP9lua_State9HksObjectS1_")
+        && Resolve(g_api.rawgeti, "_Z15hks_obj_rawgetiP9lua_StatePK9HksObjectiPS1_")
         && Resolve(g_api.settable, "_Z16hks_obj_settableP9lua_StatePK9HksObjectS3_S3_")
         && Resolve(g_api.setmetatable, "_Z20hks_obj_setmetatableP9lua_StatePK9HksObjectS3_")
         && Resolve(g_api.tolstring, "_Z17hks_obj_tolstringP9lua_StateP9HksObjectPm")
@@ -134,7 +137,7 @@ void Push(lua_State* L, HksObject o) {
 }
 void PushString(lua_State* L, const char* s, size_t len) { Push(L, NewString(L, s, len)); }
 void PushBoolean(lua_State* L, bool b) { Push(L, HksObject{ TBOOLEAN, b ? 1ull : 0ull }); }
-void PushNumber(lua_State* L, double d) { HksObject o{ TNUMBER, 0 }; memcpy(&o.v, &d, 8); Push(L, o); }
+void PushNumber(lua_State* L, double d) { Push(L, Number(d)); }
 void PushInteger(lua_State* L, int64_t i) { PushNumber(L, (double)i); }
 void PushNil(lua_State* L) { Push(L, HksObject{ TNIL, 0 }); }
 
@@ -183,6 +186,15 @@ void SetField(lua_State* L, HksObject table, const char* key, HksObject value) {
     g_api.settable(L, &table, &k, &value);
     Pop(L, 1);
 }
+HksObject RawGetI(lua_State* L, HksObject table, int n) {
+    HksObject value{ TNIL, 0 };
+    g_api.rawgeti(L, &table, n, &value);
+    return value;
+}
+void SetIndex(lua_State* L, HksObject table, int n, HksObject value) {
+    HksObject k = Number((double)n);
+    g_api.settable(L, &table, &k, &value);
+}
 void SetMetatable(lua_State* L, HksObject table, HksObject mt) { g_api.setmetatable(L, &table, &mt); }
 
 std::string ToString(lua_State* L, HksObject o) {
@@ -190,7 +202,7 @@ std::string ToString(lua_State* L, HksObject o) {
     switch (Tag(o)) {
     case TNIL: return "nil";
     case TBOOLEAN: return (o.v & 0xff) ? "true" : "false";
-    case TNUMBER: { double d; memcpy(&d, &o.v, 8); snprintf(buf, sizeof buf, "%.14g", d); return buf; }
+    case TNUMBER: snprintf(buf, sizeof buf, "%.14g", NumberValue(o)); return buf;
     case TSTRING: return std::string(StringData(o), StringLen(o));
     default: {
         HksObject copy = o;
