@@ -1,10 +1,28 @@
 ## [Unreleased]
 
+### Added
+
+- macOS support on Apple Silicon. The mod now runs on the Mac version of the game from Steam, with speech, sounds, text input, and the same interface as on Windows. See the README's macOS section for the requirements and the installer.
+- On the Mac, the accessibility settings (`F12`) have a Speech section to choose the speech output (system voice, Prism, or a screen reader through Prism), the voice, the rate, and the volume. Pressing any key stops the current speech, as a screen reader does.
+- On the Mac, the Macaw screen reader is supported: with the speech output set to Auto or Prism, the mod speaks through Macaw whenever it is running, and Macaw is offered as a Prism backend.
+
 ### Changed
 
 - The tile readout now names the feature first, says "Hill" or "Mountain" as a separate word, and leaves out the terrain when the feature already implies it. For example, "Grassland (Hills), Woods" is now "Woods, Hill, Grassland", "Grassland, Marsh" is now "Marsh", and a natural wonder is named on its own. Waypoint and target labels follow the same wording.
 - Unexplored tiles are now called "Unexplored" instead of "Uncharted Territory".
 - New cursor sounds for grassland, plains, desert, tundra, snow, mountain, rainforest, marsh, floodplains, oasis, ice, woods, coast and reef, and for fog, river crossings, bridges, roads and railroads. Ocean, volcano, volcanic soil and geothermal fissure keep their sounds.
+- On the Mac, `Ctrl+Left` / `Ctrl+Right` in tables, grids and text fields are `Command+Left` / `Command+Right`, also with `Shift`. Spoken key help says Option and Command where it would say Alt and Control on Windows.
+
+### Fixed
+
+- On the Mac, shortcuts on Option+E, Option+U, Option+I and Option+N (quick move northeast, upgrade, make trade route, repair) now work. macOS uses these keys to type accents, and the mod mistook the pending accent for an input method composition and ignored the key.
+- On the Mac, a letter hotkey that opens a screen with a text field no longer types that letter into the field, such as `M` placing a map tack and typing "m" into its name.
+- Type-to-find text now clears after the search timeout in the main menu and setup screens as well, not only in-game.
+- On the Mac, cursor sounds that follow another sound, such as the terrain sound after a river crossing or the forest and road sounds after the terrain, no longer arrive up to a second late. The same fix makes the type-to-find timeout and other short delays as precise as on Windows.
+- On the Mac, long text such as a civilopedia page starts speaking as soon as its first second is ready instead of after the whole text has been prepared.
+- On the Mac, typing with a Japanese, Chinese or Korean input source no longer puts the raw keystrokes of a composition into type-to-find or a text field.
+- On the Mac, sounds recover from a headphone or output device change while game setup or a picker is open, on the next key press, instead of only after leaving it.
+- The map search waits the same third of a second after typing on every machine, instead of a number of frames that depended on the frame rate.
 
 ## [1.5.2] - 2026-09-25
 
@@ -37,13 +55,9 @@
 - The world scanner has a new Yields category, shown while managing a city's citizens and placed right after City management. It has a group for each yield type (food, production, gold, science, culture, and faith); each group lists the workable tiles that produce that yield, highest first, so a tile appears under every yield it makes. Each tile reads its yields, such as "3 production, 2 food".
 - The world scanner has a new World Builder category, shown only while the World Builder is active. It has two subcategories: Starting positions lists each placed start, named by its assignment type and target, such as "Player: Rome", "Leader: Trajan", "Civilization: Rome", "Random Player", or "Random City-State", and grouped by that type; and Ownership lists owned tiles merged into zones per owner, like the political lens.
 - Added a UI setting to focus the active tab instead of page contents when first entering a tab control. Note that some screens may still override this
-- macOS support on Apple Silicon. The mod now runs on the Mac version of the game from Steam, with speech, sounds, text input, and the same interface as on Windows. See the README's macOS section for the requirements and the installer.
-- On the Mac, the accessibility settings (`F12`) have a Speech section to choose the speech output (system voice, Prism, or a screen reader through Prism), the voice, the rate, and the volume. Pressing any key stops the current speech, as a screen reader does.
-- On the Mac, the Macaw screen reader is supported: with the speech output set to Auto or Prism, the mod speaks through Macaw whenever it is running, and Macaw is offered as a Prism backend.
 
 ### Changed
 
-- On the Mac, `Ctrl+Left` / `Ctrl+Right` in tables, grids and text fields are `Command+Left` / `Command+Right`, also with `Shift`. Spoken key help says Option and Command where it would say Alt and Control on Windows.
 - The great work viewer's painting and sculpture descriptions have been rewritten from the real artworks. Each one is now three or four plain sentences that name the medium and tradition, then the scene, then the look, and no longer repeats the title or artist.
 - The leader descriptions read with `F2` in the diplomacy and deal screens and from the leader picker have been rewritten from the full diplomacy scene instead of the small portrait. Each now opens with the leader's full name and titles, then describes the setting, the person, their dress and regalia, any props, the background, and the light in one detailed paragraph, naming the real place the scene shows where it is known.
 - The great work viewer now also describes the shared writing and music backgrounds, the artifact images, the relic images, the Heroes and Legends symbols and epics, the Secret Societies relics, and the Monopolies and Corporations products.
@@ -71,8 +85,6 @@
 
 ### Fixed
 
-- On the Mac, shortcuts on Option+E, Option+U, Option+I and Option+N (quick move northeast, upgrade, make trade route, repair) now work. macOS uses these keys to type accents, and the mod mistook the pending accent for an input method composition and ignored the key.
-- On the Mac, a letter hotkey that opens a screen with a text field no longer types that letter into the field, such as `M` placing a map tack and typing "m" into its name.
 - Fixed factual errors in the great work descriptions, such as Andrei Rublev's icons being called Byzantine and details invented from thumbnails.
 - After opening a specific Civilopedia article, Shift+Tab from its body now properly lands on that article in the sections tree, instead of focusing the first section.
 - Fixed an issue with units vanishing while in combat animations
@@ -86,15 +98,6 @@
 - Fixed a bug with moving and swapping great-works, where the picker did not show all valid slots. This lead to issues such as not being able to swap works in the palace with others that did not match their types,, or directly moving works in to empty slots
 - After moving a unit onto a tribal village, discovering a natural wonder, or moving into or out of the water, the movement announcement waits for the game's movement update and reports the unit's actual remaining movement, instead of a stale value.
 - In the city overview panel's Citizens and growth summary, the food per turn figure is now the net food after consumption instead of the raw food yield.
-
-### Fixed
-
-- Type-to-find text now clears after the search timeout in the main menu and setup screens as well, not only in-game.
-- On the Mac, cursor sounds that follow another sound, such as the terrain sound after a river crossing or the forest and road sounds after the terrain, no longer arrive up to a second late. The same fix makes the type-to-find timeout and other short delays as precise as on Windows.
-- On the Mac, long text such as a civilopedia page starts speaking as soon as its first second is ready instead of after the whole text has been prepared.
-- On the Mac, typing with a Japanese, Chinese or Korean input source no longer puts the raw keystrokes of a composition into type-to-find or a text field.
-- On the Mac, sounds recover from a headphone or output device change while game setup or a picker is open, on the next key press, instead of only after leaving it.
-- The map search waits the same third of a second after typing on every machine, instead of a number of frames that depended on the frame rate.
 
 ## [1.4.1] - 2026-08-30
 
