@@ -16,6 +16,7 @@
 ### Fixed
 
 - On the Mac, shortcuts on Option+E, Option+U, Option+I and Option+N (quick move northeast, upgrade, make trade route, repair) now work. macOS uses these keys to type accents, and the mod mistook the pending accent for an input method composition and ignored the key.
+- On the Mac, loading a map saved in the World Builder no longer turns the mod off for that session.
 - On the Mac, a letter hotkey that opens a screen with a text field no longer types that letter into the field, such as `M` placing a map tack and typing "m" into its name.
 - Type-to-find text now clears after the search timeout in the main menu and setup screens as well, not only in-game.
 - On the Mac, cursor sounds that follow another sound, such as the terrain sound after a river crossing or the forest and road sounds after the terrain, no longer arrive up to a second late. The same fix makes the type-to-find timeout and other short delays as precise as on Windows.

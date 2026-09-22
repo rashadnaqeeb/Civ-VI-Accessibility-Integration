@@ -29,6 +29,11 @@ bool CaiConfigSet(const char* section, const char* key, const char* value);
 void CaiRegisterApi(lua_State* L, HksObject cai);
 size_t CaiApiCount();
 
+// ---- database.cpp: the SQLite bridge, registered by luaapi.cpp -------------
+int CaiDbOpenDatabase(lua_State* L);
+int CaiDbCloseDatabase(lua_State* L);
+int CaiDbQuery(lua_State* L);
+
 // ---- inject.cpp: the handshake target ---------------------------------------
 bool CaiLooksLikeState(const void* p);
 void CaiInject(lua_State* L);

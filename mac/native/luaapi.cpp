@@ -1,6 +1,7 @@
 // ExposedMembers.CAI implementation for macOS, mirroring the Windows DLL's API
 // (extern/civ6-accessibility-lua-integration: luaMethods, luaSpeech, luaAudio,
-// luaUpdateManager). Every function uses only the hks binding layer.
+// luaUpdateManager; luaDatabase is in database.cpp). Every function uses only
+// the hks binding layer.
 #include "cai.h"
 #include "hks.h"
 #include "audio.h"
@@ -218,6 +219,7 @@ const Entry kApi[] = {
     { "SetMasterVolume", l_SetMasterVolume }, { "GetMasterVolume", l_GetMasterVolume },
     { "AudioUpdate", l_AudioUpdate },
     { "GetTime", l_GetTime },
+    { "OpenDatabase", CaiDbOpenDatabase }, { "CloseDatabase", CaiDbCloseDatabase }, { "Query", CaiDbQuery },
 };
 }
 
