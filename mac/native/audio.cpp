@@ -52,9 +52,27 @@ public:
     }
     bool Ready() const { return mInitialized; }
 
-    void Play() { ma_result r = ma_sound_start(&mSound); LogDebug("audio: play %s -> %s", mPath.c_str(), ma_result_description(r)); }
+    // A start time of 0 is in the past, so the sound starts at once; it also
+    // pulls forward a start that PlayDelayed scheduled and that has not come.
+    void Play() {
+        ma_sound_set_start_time_in_pcm_frames(&mSound, 0);
+        ma_result r = ma_sound_start(&mSound);
+        LogDebug("audio: play %s -> %s", mPath.c_str(), ma_result_description(r));
+    }
+    // Restart from the beginning after delayMs on the engine clock, as Civ V
+    // Access does: the audio thread starts it on the exact frame, not on the
+    // first game frame after the delay.
+    void PlayDelayed(unsigned delayMs) {
+        ma_sound_stop(&mSound);
+        ma_sound_seek_to_pcm_frame(&mSound, 0);
+        ma_uint64 now = ma_engine_get_time_in_milliseconds(ma_sound_get_engine(&mSound));
+        ma_sound_set_start_time_in_milliseconds(&mSound, now + delayMs);
+        ma_result r = ma_sound_start(&mSound);
+        LogDebug("audio: play %s in %u ms -> %s", mPath.c_str(), delayMs, ma_result_description(r));
+    }
     void Pause() { ma_sound_stop(&mSound); }
-    void Stop() { ma_sound_stop(&mSound); ma_sound_seek_to_pcm_frame(&mSound, 0); }
+    // Stopping also cancels a scheduled start that has not come yet.
+    void Stop() { ma_sound_stop(&mSound); ma_sound_seek_to_pcm_frame(&mSound, 0); ma_sound_set_start_time_in_pcm_frames(&mSound, 0); }
 
     void SetLooping(bool b) { mLooping = b; ma_sound_set_looping(&mSound, b ? MA_TRUE : MA_FALSE); }
     bool IsLooping() const { return ma_sound_is_looping(&mSound) == MA_TRUE; }
@@ -253,6 +271,7 @@ bool DestroySound(Handle h) {
 }
 
 void Play(Handle h) { WithSound(h, [](Sound& s) { s.Play(); }); }
+void PlayDelayed(Handle h, unsigned delayMs) { WithSound(h, [=](Sound& s) { s.PlayDelayed(delayMs); }); }
 void Pause(Handle h) { WithSound(h, [](Sound& s) { s.Pause(); }); }
 void Stop(Handle h) { WithSound(h, [](Sound& s) { s.Stop(); }); }
 void SetVolume(Handle h, float v) { WithSound(h, [=](Sound& s) { s.SetVolume(v); }); }

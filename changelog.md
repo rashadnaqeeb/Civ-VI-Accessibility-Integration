@@ -18,6 +18,7 @@
 - On the Mac, a letter hotkey that opens a screen with a text field no longer types that letter into the field, such as `M` placing a map tack and typing "m" into its name.
 - Type-to-find text now clears after the search timeout in the main menu and setup screens as well, not only in-game.
 - On the Mac, cursor sounds that follow another sound, such as the terrain sound after a river crossing or the forest and road sounds after the terrain, no longer arrive up to a second late. The same fix makes the type-to-find timeout and other short delays as precise as on Windows.
+- On the Mac, the cursor sounds that follow another sound now start exactly a tenth of a second apart. They used to wait for the next game frame, which made the gaps slightly longer and uneven.
 - On the Mac, long text such as a civilopedia page starts speaking as soon as its first second is ready instead of after the whole text has been prepared.
 - On the Mac, typing with a Japanese, Chinese or Korean input source no longer puts the raw keystrokes of a composition into type-to-find or a text field.
 - On the Mac, sounds recover from a headphone or output device change while game setup or a picker is open, on the next key press, instead of only after leaving it.

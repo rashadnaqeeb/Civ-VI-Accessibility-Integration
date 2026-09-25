@@ -138,6 +138,11 @@ int l_LoadSound(lua_State* L) {
 }
 int l_DestroySound(lua_State* L) { hks::PushBoolean(L, audio::DestroySound(SoundArg(L))); return 1; }
 int l_PlaySound(lua_State* L) { audio::Play(SoundArg(L)); return 0; }
+int l_PlaySoundDelayed(lua_State* L) {
+    auto ms = hks::CheckInteger(L, 2);
+    audio::PlayDelayed(SoundArg(L), ms > 0 ? (unsigned)ms : 0u);
+    return 0;
+}
 int l_PauseSound(lua_State* L) { audio::Pause(SoundArg(L)); return 0; }
 int l_StopSound(lua_State* L) { audio::Stop(SoundArg(L)); return 0; }
 int l_SetSoundVolume(lua_State* L) { audio::SetVolume(SoundArg(L), FloatArg(L, 2)); return 0; }
@@ -205,7 +210,7 @@ const Entry kApi[] = {
     { "GetLatestVersion", l_GetLatestVersion },
     { "GetSpeechVoices", l_GetSpeechVoices }, { "GetSpeechSystemVoice", l_GetSpeechSystemVoice }, { "GetPrismBackends", l_GetPrismBackends },
     { "LoadSound", l_LoadSound }, { "DestroySound", l_DestroySound },
-    { "PlaySound", l_PlaySound }, { "PauseSound", l_PauseSound }, { "StopSound", l_StopSound },
+    { "PlaySound", l_PlaySound }, { "PlaySoundDelayed", l_PlaySoundDelayed }, { "PauseSound", l_PauseSound }, { "StopSound", l_StopSound },
     { "SetSoundVolume", l_SetSoundVolume }, { "GetSoundVolume", l_GetSoundVolume },
     { "SetSoundLooping", l_SetSoundLooping }, { "IsSoundLooping", l_IsSoundLooping },
     { "SetSoundPitch", l_SetSoundPitch }, { "GetSoundPitch", l_GetSoundPitch },

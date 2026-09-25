@@ -480,6 +480,17 @@ function CAIAudioManager:QueueSound(soundId, delaySeconds, options)
         return false
     end
 
+    -- Mac: the native engine starts the sound on its own clock, so layered
+    -- cursor sounds keep exact gaps instead of waiting for the next frame.
+    -- Stopping the sound or its tag cancels the scheduled start.
+    if CAI.PlaySoundDelayed ~= nil then
+        if self:ShouldMuteForWindowFocus() or self:ShouldSkipPlay(record, options) then
+            return false
+        end
+        CAI.PlaySoundDelayed(record.Handle, math.floor((delaySeconds or 0) * 1000 + 0.5))
+        return true
+    end
+
     table.insert(self.Queue, {
         SoundId = soundId,
         DueTime = GetTime() + (delaySeconds or 0),

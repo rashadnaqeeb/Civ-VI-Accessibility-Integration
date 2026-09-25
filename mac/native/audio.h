@@ -22,6 +22,8 @@ std::optional<Handle> LoadSound(const std::string& filePath);
 bool DestroySound(Handle h);
 
 void Play(Handle h);
+// Restart the sound from the beginning delayMs from now, on the engine clock.
+void PlayDelayed(Handle h, unsigned delayMs);
 void Pause(Handle h);
 void Stop(Handle h);
 

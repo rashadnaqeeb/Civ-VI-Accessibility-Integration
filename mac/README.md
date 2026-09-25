@@ -120,7 +120,7 @@ Everything Mac-specific in `src/`:
 - `src/UI/uiManager/helpers/CAIWidgetHelpers_InputHelp.lua`: `GetAltKeyName` and the Command case in `FormatBinding`.
 - `src/UI/shared/CAISettings.lua`: `GetDefinitions` filters on the `Platform` column, `GetOptions` dispatches to `CAISettings.OptionProviders`, and the two providers `SpeechVoices` and `PrismBackends` build their dropdowns from the native layer. Provider rows carry `IsLiteral`, which the settings helper honors by showing the label text as is.
 - `src/data/settings_CAI.sql`: the `Platform` and `OptionsProvider` columns of `CAI_Settings` and the Speech section rows.
-- The native API has six functions the Windows DLL lacks: `PollCharInput`, `IsCommandDown`, `GetTime`, `GetSpeechVoices`, `GetSpeechSystemVoice` and `GetPrismBackends`. Lua checks for them with `CAI.X ~= nil`. `src/ideHelpers.lua` annotates all of them.
+- The native API has seven functions the Windows DLL lacks: `PollCharInput`, `IsCommandDown`, `GetTime`, `PlaySoundDelayed`, `GetSpeechVoices`, `GetSpeechSystemVoice` and `GetPrismBackends`. Lua checks for them with `CAI.X ~= nil`. `src/ideHelpers.lua` annotates all of them.
 
 ## Files on the Mac
 

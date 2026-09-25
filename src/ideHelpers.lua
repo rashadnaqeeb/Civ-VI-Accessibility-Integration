@@ -71,6 +71,12 @@ function CAI.DestroySound(handle) end
 ---@param handle SoundHandle
 function CAI.PlaySound(handle) end
 
+---macOS only: restart the sound from the beginning delayMs from now, on the
+---audio engine's clock. nil on Windows.
+---@param handle SoundHandle
+---@param delayMs integer
+function CAI.PlaySoundDelayed(handle, delayMs) end
+
 ---@param handle SoundHandle
 function CAI.PauseSound(handle) end
 
