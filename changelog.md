@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Changed
+
+- New cursor sounds for grassland, plains, desert, tundra, snow, mountain, rainforest, marsh, floodplains, oasis, ice, woods, coast and reef, and for fog, river crossings, bridges, roads and railroads. Ocean, volcano, volcanic soil and geothermal fissure keep their sounds.
+
 ## [1.6.0] - 2026-09-30
 
 ### Added
