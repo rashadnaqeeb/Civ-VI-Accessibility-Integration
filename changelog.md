@@ -4,6 +4,7 @@
 
 - The tile readout now names the feature first, says "Hill" or "Mountain" as a separate word, and leaves out the terrain when the feature already implies it. For example, "Grassland (Hills), Woods" is now "Woods, Hill, Grassland", "Grassland, Marsh" is now "Marsh", and a natural wonder is named on its own. Waypoint and target labels follow the same wording.
 - Unexplored tiles are now called "Unexplored" instead of "Uncharted Territory".
+- New cursor sounds for grassland, plains, desert, tundra, snow, mountain, rainforest, marsh, floodplains, oasis, ice, woods, coast and reef, and for fog, river crossings, bridges, roads and railroads. Ocean, volcano, volcanic soil and geothermal fissure keep their sounds.
 
 ## [1.5.2] - 2026-09-25
 
